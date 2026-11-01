@@ -1,0 +1,79 @@
+{
+  "docTypes": [
+    { "code": "docx", "name": "Văn bản", "extension": "docx" },
+    { "code": "pptx", "name": "Trình chiếu", "extension": "pptx" }
+  ],
+  "categories": [
+    { "id": "hanh-chinh", "name": "Hành chính", "description": "Hợp đồng, đơn từ và biểu mẫu hành chính" },
+    { "id": "nhan-su", "name": "Nhân sự", "description": "CV, hồ sơ tuyển dụng" },
+    { "id": "giao-duc", "name": "Giáo dục", "description": "Thời khoá biểu, bài giảng" },
+    { "id": "bao-cao", "name": "Báo cáo", "description": "Báo cáo tổng kết, báo cáo kết quả" },
+    { "id": "kinh-doanh", "name": "Kinh doanh", "description": "Giới thiệu dự án, kế hoạch kinh doanh" }
+  ],
+  "templates": [
+    {
+      "id": "hop-dong-lao-dong",
+      "type": "docx",
+      "category": "hanh-chinh",
+      "name": "Hợp đồng lao động",
+      "description": "Hợp đồng lao động giữa doanh nghiệp và người lao động: thông tin hai bên, công việc, tiền lương, nghĩa vụ.",
+      "source": "docx/hop-dong-lao-dong.docx"
+    },
+    {
+      "id": "cv-thiet-ke-noi-that",
+      "type": "docx",
+      "category": "nhan-su",
+      "name": "CV nhà thiết kế nội thất",
+      "description": "CV hai cột có ảnh đại diện: hồ sơ, học vấn, kinh nghiệm, kỹ năng (tiếng Anh).",
+      "source": "docx/p1.docx"
+    },
+    {
+      "id": "thoi-khoa-bieu-hoc-ky",
+      "type": "docx",
+      "category": "giao-duc",
+      "name": "Thời khoá biểu học kỳ",
+      "description": "Lịch học đại học theo tiết và ngày trong tuần, ghi phòng học và tuần học (tiếng Anh).",
+      "source": "docx/p2.docx"
+    },
+    {
+      "id": "thoi-khoa-bieu-tuan",
+      "type": "docx",
+      "category": "giao-duc",
+      "name": "Thời khoá biểu theo tuần",
+      "description": "Thời khoá biểu phổ thông từ thứ Hai đến thứ Sáu, chia buổi sáng và chiều (tiếng Anh).",
+      "source": "docx/p3.docx"
+    },
+    {
+      "id": "bao-cao-tong-ket-kinh-doanh",
+      "type": "docx",
+      "category": "bao-cao",
+      "name": "Báo cáo tổng kết kinh doanh cuối năm",
+      "description": "Báo cáo của trưởng phòng kinh doanh: kết quả, chi phí, đội ngũ và kế hoạch năm tới (tiếng Anh).",
+      "source": "docx/p4.docx"
+    },
+    {
+      "id": "bao-cao-kinh-doanh-quy",
+      "type": "pptx",
+      "category": "bao-cao",
+      "name": "Báo cáo kinh doanh quý",
+      "description": "Bộ slide báo cáo kết quả quý: chỉ số chính, biểu đồ doanh thu, bảng chi phí, kế hoạch quý tới.",
+      "source": "pptx/bao-cao-kinh-doanh-quy.pptx"
+    },
+    {
+      "id": "bai-giang",
+      "type": "pptx",
+      "category": "giao-duc",
+      "name": "Bài giảng lớp học",
+      "description": "Bộ slide bài giảng: mục tiêu, nội dung chính, khái niệm cần nhớ, thảo luận và bài tập.",
+      "source": "pptx/bai-giang.pptx"
+    },
+    {
+      "id": "gioi-thieu-du-an",
+      "type": "pptx",
+      "category": "kinh-doanh",
+      "name": "Giới thiệu dự án",
+      "description": "Bộ slide giới thiệu dự án / gọi vốn: vấn đề, giải pháp, lộ trình, đội ngũ.",
+      "source": "pptx/gioi-thieu-du-an.pptx"
+    }
+  ]
+}

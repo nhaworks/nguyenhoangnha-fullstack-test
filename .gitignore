@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.DS_Store
+__pycache__/
+*.log
+*.tmp
+
+.env
+!.env.example
+
+server/storage/documents/
+
+yarn.lock

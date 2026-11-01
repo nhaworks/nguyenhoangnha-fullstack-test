@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "test": "node --import tsx --test --test-concurrency=1 \"test/**/*.test.ts\"",
+    "samples": "uv run scripts/samples.py"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.4",
+    "fastify": "^5.12.7",
+    "mysql2": "^3.24.6"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "drizzle-kit": "^0.31.11",
+    "jszip": "^3.10.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
