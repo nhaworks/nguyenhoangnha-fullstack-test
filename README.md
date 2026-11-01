@@ -11,25 +11,17 @@ Danh mục bàn giao: [BAN-GIAO.md](BAN-GIAO.md).
 
 ![Demo luồng chính của Bài 1 và Bài 2](docs/demo.gif) [docs/demo-recording.mp4](docs/demo-recording.mp4)
 
-## Công nghệ
-
-| Phần | Công nghệ |
-|---|---|
-| Backend (`server/`, port 3000) | Node.js 22, Fastify 5, TypeScript, Drizzle ORM, MySQL 8 |
-| Frontend (`client/`, port 5173) | React 19, Vite, TypeScript, Tailwind CSS 4, axios |
-| Editor DOCX | `@docx-editor.dev/react` |
-
 ## Kiến trúc
 
 ![Kiến trúc client và server](docs/architecture.png)
 
-Backend chia module theo nghiệp vụ `templates`, `categories`, `documents`, 
+Backend chia module theo nghiệp vụ `templates`, `categories`, `documents`:
 
 ```
 Routes ──► Controller ──► Service ──► Repository ──► MySQL
 ```
 
-Frontend chia module `templates`, `documents`, 
+Frontend chia module `templates`, `documents`:
 
 ```
 pages / components ──► hooks ──► application ──► api ──► /api (Vite proxy)
@@ -69,13 +61,9 @@ nguyenhoangnha-fullstack-test/
     └── test-cases-result.csv
 ```
 
-### ERD
+## Hướng dẫn cài đặt và chạy thử
 
-![Sơ đồ cơ sở dữ liệu](docs/erd.png)
-
-## Hướng dẫn cài đặt & start
-Yêu cầu:
-**Node.js 22+**, **MySQL 8.0+**
+Yêu cầu: **Node.js 22+**, **MySQL 8.0+**
 
 **Terminal 1 – Backend**
 
@@ -109,39 +97,104 @@ Mở http://localhost:5173
 | `STORAGE_ROOT` | `server/storage` |
 | `DEFAULT_USER_ID` | `demo` |
 
-## API và dữ liệu
+## Trình bày kỹ thuật
 
-- Swagger UI: http://localhost:3000/api/docs (hoặc http://localhost:5173/api/docs)
+### Công nghệ
 
+| Phần | Công nghệ |
+|---|---|
+| Frontend (`client/`, port 5173) | React 19, Vite 8, TypeScript, Tailwind CSS 4, axios |
+| Backend (`server/`, port 3000) | Node.js 22, Fastify 5, TypeScript (strict) |
+| Cơ sở dữ liệu | MySQL 8, Drizzle ORM: schema ở `server/src/db/schema.ts`, migration sinh tự động ở `server/drizzle/` |
+| Editor DOCX | `@docx-editor.dev/react`, chạy trên trình duyệt, sửa thẳng file .docx |
+| Tài liệu API | OpenAPI 3 sinh từ JSON schema của route (`@fastify/swagger`, `@fastify/swagger-ui`) |
+| Kiểm thử | `node:test` + `app.inject()` của Fastify |
 
+### Cấu trúc API và mô hình dữ liệu
 
-## Lưu trữ và tạo bản sao
+Tài liệu API đầy đủ (tham số, body, response mẫu): Swagger UI http://localhost:3000/api/docs, file OpenAPI http://localhost:3000/api/docs/json.
 
-Tất cả file được lưu trong thư mục `server/storage/`. Database chỉ lưu đường dẫn đến file, không lưu trực tiếp nội dung file.
+| Nhóm API | Chức năng |
+|---|---|
+| `/api/templates`, `/api/categories` | Danh sách mẫu theo loại (`type`), tìm kiếm (`q`), lọc danh mục (`category`), chi tiết mẫu kèm ảnh xem trước, đọc file mẫu |
+| `/api/templates/:id/documents` | Tạo tài liệu mới từ mẫu |
+| `/api/documents` | Danh sách tài liệu đã tạo, xem thông tin, lưu file .docx từ editor, đổi tên, tải xuống |
+| `/files/previews/*` | Ảnh xem trước và thumbnail |
 
-### 1. Cách lưu file
+Mọi response JSON cùng một dạng, `code` luôn bằng HTTP status, lỗi thì `data` là `null`:
 
-- **File mẫu:** Lưu tại `storage/templates/`. Đây là các file gốc, hệ thống chỉ đọc và không chỉnh sửa.
-- **Tài liệu người dùng:** Khi tạo tài liệu mới, hệ thống sao chép file mẫu thành một file riêng tại `storage/documents/demo/`, với tên file là UUID để tránh trùng lặp.
-- **Lưu an toàn:** Hệ thống kiểm tra đường dẫn để đảm bảo file không thể truy cập hoặc ghi ra ngoài thư mục được phép.
+```json
+{ "code": 200, "message": "Thành công", "data": { } }
+{ "code": 404, "message": "Không tìm thấy mẫu", "data": null }
+```
 
-### 2. Tạo và chỉnh sửa tài liệu
+Endpoint trả file (file mẫu, ảnh xem trước, tải tài liệu) trả nhị phân, không bọc.
 
-- **Tạo tài liệu:** File mẫu được sao chép thành tài liệu mới và lưu thông tin vào database trong cùng một transaction. Nếu xảy ra lỗi, file được tạo dở sẽ bị xóa.
-- **Chỉnh sửa DOCX:** Frontend gửi toàn bộ file `.docx` sau khi chỉnh sửa lên server. Server kiểm tra định dạng, ghi vào file tạm rồi đổi tên thành file chính thức khi hoàn tất.
+| Mã | Khi nào |
+|---|---|
+| 200 / 201 | Thành công / tạo tài liệu thành công |
+| 400 | Tham số hoặc body sai định dạng, file gửi lên không phải .docx |
+| 404 | Không tìm thấy mẫu, tài liệu, file hoặc đường dẫn |
+| 409 | Lưu đè loại tài liệu chưa hỗ trợ chỉnh sửa (PPTX) |
+| 413 | File lưu vượt 20 MB |
+| 415 | Lưu tài liệu nhưng Content-Type không phải DOCX |
+| 500 | Lỗi máy chủ (ghi log, không trả stack hay đường dẫn file) |
+| 503 | `/api/health` không kết nối được cơ sở dữ liệu |
 
-### 3. Thêm mẫu tài liệu mới
+![Sơ đồ cơ sở dữ liệu](docs/erd.png)
 
-Để thêm một mẫu DOCX hoặc PPTX, thực hiện các bước sau:
+| Bảng | Nội dung |
+|---|---|
+| `doc_types` | Loại tài liệu: `code` (docx, pptx), tên, phần mở rộng |
+| `categories` | Danh mục: `slug`, tên, mô tả |
+| `templates` | Mẫu: `slug`, loại, danh mục, tên, mô tả, `file_path` |
+| `template_previews` | Ảnh xem trước theo thứ tự `position`; ảnh `position = 1` là thumbnail |
+| `documents` | Tài liệu tạo từ mẫu: `uuid`, mẫu gốc, tiêu đề, `file_path`, `created_at`, `updated_at` (lần lưu gần nhất) |
 
-1. Chép file mẫu vào `storage/templates/docx/` hoặc `storage/templates/pptx/`.
-2. Thêm ảnh xem trước của tài liệu vào `storage/previews/<id>/`, đặt tên lần lượt là `1.png`, `2.png`, ...
-3. Thêm thông tin mẫu vào `storage/templates/manifest.json`.
-4. Khởi động lại server để hệ thống tải danh sách mẫu mới.
+- Khoá chính `id` INT tự tăng chỉ dùng trong DB và khoá ngoại. API dùng khoá công khai (`slug` của mẫu / danh mục, `uuid` của tài liệu) trả dưới tên `id`, không lộ id số.
+- Loại của tài liệu lấy qua `documents → templates → doc_types`, không lặp cột loại.
+- Database dùng collation `utf8mb4_0900_ai_ci` nên tìm `hop dong` ra `Hợp đồng…` (bỏ qua hoa thường và dấu tiếng Việt) mà không cần cột phụ.
 
-**Lưu ý:** Không cần sửa code frontend khi thêm mẫu mới. File mẫu gốc luôn được giữ nguyên; mỗi tài liệu được tạo sẽ có một bản sao riêng.
+### Lưu trữ, quản lý và phân phối template
 
-## Kiểm thử
+Mọi file nằm trong `server/storage/`; database chỉ lưu đường dẫn tương đối, không lưu nội dung file.
+
+| Thư mục | Nội dung |
+|---|---|
+| `storage/templates/manifest.json` | Khai báo loại tài liệu, danh mục và danh sách mẫu |
+| `storage/templates/<loại>/<id>.<đuôi>` | File mẫu gốc, chỉ đọc lúc chạy |
+| `storage/previews/<id>/1.png, 2.png…` | Ảnh xem trước từng trang / slide |
+| `storage/documents/demo/<uuid>.<đuôi>` | Tài liệu người dùng tạo (không commit) |
+
+**Quản lý:** khi khởi động, server đọc `manifest.json` và upsert loại, danh mục, mẫu, ảnh xem trước vào DB theo `code` / `slug` (chạy lại không đổi id). Danh sách mẫu và danh mục ở giao diện đều lấy từ API, không hardcode.
+
+**Phân phối:** ảnh xem trước qua `/files/previews/<id>/<n>.png`, file mẫu qua `/api/templates/:id/file`, tài liệu qua `/api/documents/:id/download` (tên file tải về theo tiêu đề tài liệu). MIME suy theo phần mở rộng tại một chỗ (`server/src/storage.ts`). Mọi đường dẫn đi qua `getStoragePath()`: resolve rồi kiểm tra còn nằm trong thư mục cho phép, nên chặn được path traversal; client không bao giờ gửi đường dẫn file.
+
+**Thêm mẫu mới** (không sửa code frontend hay backend):
+
+1. Chép file vào `storage/templates/<loại>/<id>.<đuôi>`, tên file trùng `id` khai trong manifest, vd. `storage/templates/docx/don-xin-nghi-phep.docx`.
+2. Thêm ảnh xem trước vào `storage/previews/<id>/`, đặt tên `1.png`, `2.png`… (không có ảnh thì giao diện hiện icon tài liệu).
+3. Thêm `{ "id", "type", "category", "name", "description" }` vào `templates` của `manifest.json`; danh mục mới thì thêm vào `categories`.
+4. Khởi động lại server.
+
+### Tạo bản sao tài liệu không sửa file gốc
+
+- **Tạo tài liệu:** `copyFile(mẫu, storage/documents/demo/<uuid>.<đuôi>, COPYFILE_EXCL)` và `INSERT documents` chạy trong cùng một transaction; lỗi thì rollback và xoá file dở. Tên file là UUID nên không ghi đè file có sẵn.
+- **File mẫu chỉ đọc:** không có code nào mở `storage/templates/` ở chế độ ghi; tài liệu luôn trỏ tới bản sao riêng của nó.
+- **Sửa DOCX:** editor chạy trên trình duyệt tải bản sao về, sửa thẳng trên DOCX rồi `PUT /api/documents/:id` gửi lại nguyên file. Server kiểm tra đúng là .docx, ghi file tạm rồi `rename` (không bao giờ để lại file ghi dở), cập nhật `updated_at`. Không chuyển qua HTML nên giữ được định dạng gốc.
+- **Tự lưu:** 2 giây sau lần gõ cuối; quay lại danh sách hoặc tải xuống thì lưu xong mới đi; ẩn tab thì lưu ngay.
+- **PPTX:** bản sao là file độc lập, tải về mở bằng PowerPoint, LibreOffice Impress hoặc Keynote.
+
+### Xử lý lỗi và kiểm thử
+
+**Xử lý lỗi**
+
+- Mọi input (params, query, body) validate bằng JSON schema của Fastify; route lưu tài liệu giới hạn 20 MB.
+- Service ném `AppError(status, message)`; error handler chung đổi thành response chuẩn ở trên. Lỗi không lường trước trả 500, chỉ ghi log ở server.
+- Từ khoá tìm kiếm được escape `%`, `_`, `\` trước khi đưa vào `LIKE`; truy vấn qua Drizzle có tham số, không nối chuỗi SQL.
+- Frontend: axios interceptor đổi mọi lỗi thành `ApiError` với câu tiếng Việt từ server. Mọi màn có dữ liệu đều có trạng thái đang tải, lỗi (nút Thử lại), rỗng / không tìm thấy (nút Xoá bộ lọc). Tạo hoặc lưu tài liệu lỗi thì báo bằng toast; rời trang khi còn nội dung chưa gửi được thì trình duyệt hỏi lại.
+
+**Kiểm thử**
 
 ```bash
 cd server
@@ -149,7 +202,37 @@ npm test
 npm run test:cases
 ```
 
-`npm test` chạy toàn bộ test trên database `template_library_test`. `npm run test:cases` chạy 44 test case chức năng trong `docs/test-cases.csv` ghi kết quả ra `docs/test-cases-result.csv`.
+`npm test` gọi API qua `app.inject()` (không mở cổng) trên database riêng `template_library_test` và thư mục storage tạm, không đụng dữ liệu thật. Các luồng quan trọng có test:
+
+- Tìm `hop dong` ra `Hợp đồng lao động`; ký tự `%`, `_` được tìm đúng nghĩa đen; lọc theo danh mục.
+- Tạo tài liệu: SHA-256 file mẫu gốc không đổi; tài liệu chưa sửa tải về giống hệt mẫu.
+- Lưu DOCX: file tải về vẫn còn heading, chữ đậm, danh sách, bảng; `updated_at` tăng.
+- Chặn path traversal ở `/files/previews/*`.
+- Mã lỗi 400 / 404 / 409 / 413 / 415; mọi response JSON có dạng `{ code, message, data }`.
+- Swagger có đủ endpoint; seed chạy lại không đổi id.
+
+`npm run test:cases` chạy 44 test case chức năng trong `docs/test-cases.csv` (`VB-xxx` Bài 1, `TC-xxx` Bài 2) và ghi kết quả ra `docs/test-cases-result.csv`.
+
+### Thư viện bên thứ ba
+
+| Thư viện | Phiên bản | Dùng cho | Giấy phép |
+|---|---|---|---|
+| fastify | 5.12.7 | HTTP server | MIT |
+| @fastify/swagger | 9.9.2 | Sinh OpenAPI từ schema của route | MIT |
+| @fastify/swagger-ui | 6.1.2 | Giao diện Swagger `/api/docs` | MIT |
+| drizzle-orm | 0.45.4 | Schema và query builder MySQL | Apache-2.0 |
+| mysql2 | 3.24.6 | Driver MySQL | MIT |
+| @docx-editor.dev/react | 2.33.0 | Editor DOCX trên trình duyệt | Apache-2.0 |
+
+### Mở rộng cho loại tài liệu khác
+
+Khác biệt theo loại tài liệu gom vào vài file khai báo, không rải trong logic, nên thêm loại mới (vd. XLSX) chỉ cần:
+
+1. `manifest.json`: một dòng trong `docTypes` và các mẫu của loại đó.
+2. `server/src/storage.ts`: MIME của phần mở rộng mới.
+3. Client: nhãn và chữ gợi ý ô tìm kiếm trong `client/src/modules/templates/application/doc-types.ts`, một mục menu trong `client/src/app/menu.tsx`, một tab trong `client/src/modules/documents/application/document.application.ts`.
+
+Loại mới dùng ngay được luồng tìm, lọc, xem trước, tạo bản sao và tải xuống. Muốn sửa trong ứng dụng thì thêm editor tương ứng như `DocxEditorPane`, hoặc tích hợp ONLYOFFICE / Collabora (xem Trạng thái).
 
 ## Trạng thái
 
@@ -173,12 +256,6 @@ Chi tiết từng tính năng: [docs/features.xlsx](docs/features.xlsx).
 - Bổ sung phân trang nếu dữ liệu quá nhiều
 - Mở rộng tích hợp ONLYOFFICE Docs hoặc Collabora để sửa PPTX / DOCX đầy đủ ngay trong trình duyệt
 
-## Thư viện bên thứ ba
-
-| Thư viện | Dùng cho | Giấy phép |
-|---|---|---|
-| @docx-editor.dev/react 2.33 | Editor DOCX  | Apache-2.0 |
-
 ## Ghi chú
 
 Dự án có dùng AI (Claude Code) hỗ trợ:
@@ -189,5 +266,4 @@ Dự án có dùng AI (Claude Code) hỗ trợ:
 | Sinh mã test case | Autotest `server/test/testcases.test.ts` và reporter ghi kết quả |
 | Sinh tài liệu | README, BAN-GIAO.md, features.xlsx, bộ mẫu DOCX / PPTX |
 | Hỗ trợ sinh mã code | Một phần mã backend và frontend |
-|
 | Sinh seeder | `server/src/db/seed.ts` nạp loại tài liệu, danh mục, mẫu và ảnh xem trước từ `manifest.json` |
