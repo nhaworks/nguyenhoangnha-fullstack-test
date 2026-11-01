@@ -24,14 +24,12 @@ Backend chia module theo nghiệp vụ (`templates`, `categories`, `documents`),
 
 ```
 Routes ──► Controller ──► Service ──► Repository ──► MySQL
-(URL + validate)  (HTTP)   (nghiệp vụ, file)  (truy vấn)
 ```
 
 Frontend chia module `templates`, `documents`, mỗi tầng chỉ gọi tầng ngay dưới:
 
 ```
 pages / components ──► hooks ──► application ──► api ──► /api (Vite proxy)
-(hiển thị)            (state)   (logic thuần)   (axios)
 ```
 
 ```
@@ -77,8 +75,8 @@ Cần: **Node.js 22+**, **MySQL 8.0+** đang chạy ở `127.0.0.1:3306`, user `
 ```bash
 cd server
 npm install
-npm run db:migrate   # tạo database template_library + bảng
-npm run dev          # http://localhost:3000, tự nạp bộ mẫu khi khởi động
+npm run db:migrate
+npm run dev
 ```
 
 **Terminal 2 – Frontend**
@@ -86,8 +84,10 @@ npm run dev          # http://localhost:3000, tự nạp bộ mẫu khi khởi �
 ```bash
 cd client
 npm install
-npm run dev          # mở http://localhost:5173
+npm run dev
 ```
+
+Mở http://localhost:5173.
 
 ### Cấu hình
 
@@ -107,8 +107,6 @@ Backend chạy địa chỉ khác thì đặt `API_PROXY_TARGET` trong `client/.
 ## API và dữ liệu
 
 - Swagger UI: http://localhost:3000/api/docs (hoặc http://localhost:5173/api/docs) · OpenAPI JSON: `/api/docs/json`.
-- Response JSON luôn có dạng `{ "code": <HTTP status>, "message": "<câu tiếng Việt>", "data": ... }`; lỗi thì `data = null`. Mã lỗi: 400 dữ liệu sai, 404 không tìm thấy, 409 loại tài liệu chưa sửa được, 413 file quá 20 MB, 415 sai Content-Type, 500 lỗi máy chủ, 503 mất kết nối DB.
-- File (xem trước, tải xuống) trả nhị phân, không bọc JSON.
 
 ![Sơ đồ cơ sở dữ liệu](docs/erd.png)
 
@@ -123,11 +121,11 @@ Backend chạy địa chỉ khác thì đặt `API_PROXY_TARGET` trong `client/.
 
 ```bash
 cd server
-npm test             # toàn bộ test (DB template_library_test, storage tạm)
-npm run test:cases   # 44 test case chức năng → docs/test-cases-result.csv
+npm test
+npm run test:cases
 ```
 
-Bộ test case `docs/test-cases.csv`: Bài 1 – Văn bản (`VB-xxx`), Bài 2 – Trình chiếu (`TC-xxx`), có case biên và case lỗi. Kết quả chạy ghi thêm cột Actual result · Status · Duration · Executed at.
+`npm test` chạy toàn bộ test trên database `template_library_test`. `npm run test:cases` chạy 44 test case chức năng trong `docs/test-cases.csv` (Bài 1 `VB-xxx`, Bài 2 `TC-xxx`, có case biên và case lỗi) và ghi kết quả ra `docs/test-cases-result.csv`.
 
 ## Trạng thái
 
@@ -150,13 +148,15 @@ Chi tiết từng tính năng: [docs/features.xlsx](docs/features.xlsx).
 
 | Thư viện | Dùng cho | Giấy phép |
 |---|---|---|
-| fastify 5 | HTTP server | MIT |
-| @fastify/swagger 9.9 + @fastify/swagger-ui 6.1 | Tài liệu OpenAPI, Swagger UI | MIT |
-| drizzle-orm · drizzle-kit | ORM, sinh migration | Apache-2.0 · MIT |
-| mysql2 | Driver MySQL | MIT |
-| jszip 3.10 (dev) | Đọc .docx / .pptx trong test | MIT hoặc GPL-3.0 (chọn MIT) |
-| @docx-editor.dev/react + core 2.33 | Editor DOCX trong trình duyệt (bản core) | Apache-2.0 |
+| @docx-editor.dev/react 2.33 | Editor DOCX trong trình duyệt (bản core) | Apache-2.0 |
 
 ## Ghi chú
 
-Dự án có dùng AI (Claude Code) hỗ trợ lập trình.
+Dự án có dùng AI (Claude Code) hỗ trợ:
+
+| Hạng mục | Nội dung |
+|---|---|
+| Viết test case | Bộ test case chức năng `docs/test-cases.csv` |
+| Sinh mã test case | Autotest `server/test/testcases.test.ts` và reporter ghi kết quả |
+| Sinh tài liệu | README, BAN-GIAO.md, features.xlsx, bộ mẫu DOCX / PPTX |
+| Hỗ trợ sinh mã code | Một phần mã backend và frontend |

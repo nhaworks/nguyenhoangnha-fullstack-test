@@ -14,7 +14,7 @@ export const DOC_TYPES: DocTypeOption[] = [
     pageUnit: 'trang',
     libraryTitle: 'Mẫu tài liệu ',
     description: '',
-    searchPlaceholder: 'Tìm mẫu văn bản theo tên hoặc mô tả, vd. hop dong',
+    searchPlaceholder: 'Tìm mẫu docx',
   },
   {
     code: 'pptx',
@@ -22,7 +22,7 @@ export const DOC_TYPES: DocTypeOption[] = [
     pageUnit: 'slide',
     libraryTitle: 'Kho mẫu trình chiếu',
     description: '',
-    searchPlaceholder: 'Tìm mẫu trình chiếu theo tên hoặc mô tả, vd. bao cao',
+    searchPlaceholder: 'Tìm mẫu pptx',
   },
 ];
 

@@ -74,6 +74,38 @@
       "name": "Giới thiệu dự án",
       "description": "Bộ slide giới thiệu dự án / gọi vốn: vấn đề, giải pháp, lộ trình, đội ngũ.",
       "source": "pptx/gioi-thieu-du-an.pptx"
+    },
+    {
+      "id": "dao-tao-nhan-vien-moi",
+      "type": "pptx",
+      "category": "nhan-su",
+      "name": "Đào tạo hội nhập nhân viên mới",
+      "description": "Bộ slide hội nhập nhân viên mới: giới thiệu công ty, giá trị cốt lõi, lịch tuần đầu, lộ trình 30-60-90 ngày.",
+      "source": "pptx/dao-tao-nhan-vien-moi.pptx"
+    },
+    {
+      "id": "ke-hoach-marketing",
+      "type": "pptx",
+      "category": "kinh-doanh",
+      "name": "Kế hoạch marketing",
+      "description": "Bộ slide kế hoạch marketing: mục tiêu, chân dung khách hàng, ngân sách theo kênh, lịch triển khai.",
+      "source": "pptx/ke-hoach-marketing.pptx"
+    },
+    {
+      "id": "tong-ket-nam-hoc",
+      "type": "pptx",
+      "category": "giao-duc",
+      "name": "Tổng kết năm học",
+      "description": "Bộ slide tổng kết năm học: kết quả học tập, thành tích nổi bật, khen thưởng, phương hướng năm học mới.",
+      "source": "pptx/tong-ket-nam-hoc.pptx"
+    },
+    {
+      "id": "bao-cao-tien-do-tuan",
+      "type": "pptx",
+      "category": "bao-cao",
+      "name": "Báo cáo tiến độ tuần",
+      "description": "Bộ slide báo cáo tiến độ hằng tuần: tổng quan, công việc chính, vướng mắc, kế hoạch tuần tới.",
+      "source": "pptx/bao-cao-tien-do-tuan.pptx"
     }
   ]
 }

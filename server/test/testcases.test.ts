@@ -462,12 +462,12 @@ describe('Bài 2 – Trình chiếu', () => {
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(totals, expectedCategoryTotals('pptx'));
-    assert.ok(!('hanh-chinh' in totals) && !('nhan-su' in totals));
+    assert.ok(!('hanh-chinh' in totals));
     t.diagnostic(JSON.stringify(totals));
   });
 
   test('TC-006 Lọc bộ mẫu theo danh mục, kết hợp danh mục + từ khoá', async (t) => {
-    assert.deepEqual(idsOf(await listTemplates(t, { type: 'pptx', category: 'kinh-doanh' })), ['gioi-thieu-du-an']);
+    assert.deepEqual(idsOf(await listTemplates(t, { type: 'pptx', category: 'kinh-doanh' })), ['gioi-thieu-du-an', 'ke-hoach-marketing']);
     assert.deepEqual(idsOf(await listTemplates(t, { type: 'pptx', category: 'bao-cao', q: 'quy' })), ['bao-cao-kinh-doanh-quy']);
   });
 
