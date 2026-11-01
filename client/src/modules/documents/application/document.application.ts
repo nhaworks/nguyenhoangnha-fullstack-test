@@ -4,6 +4,7 @@ import {
   getDocumentFile,
   getDocuments,
   KEEPALIVE_MAX_BYTES,
+  renameDocumentTitle,
   saveDocumentFile,
   saveDocumentFileOnExit,
 } from '../api/document.api';
@@ -85,6 +86,16 @@ export async function loadOpenedDocument(id: string): Promise<OpenedDocument> {
 export async function saveEditedDocument(id: string, content: ArrayBuffer): Promise<DocumentView> {
   const document = await saveDocumentFile(id, content);
   return addDisplayFields(document);
+}
+
+export async function renameDocument(id: string, title: string): Promise<DocumentView> {
+  const document = await renameDocumentTitle(id, title);
+  return addDisplayFields(document);
+}
+
+export function titleToSave(draft: string, currentTitle: string): string {
+  const title = draft.trim();
+  return title && title !== currentTitle ? title : '';
 }
 
 export function saveDocumentOnExit(id: string, content: ArrayBuffer): boolean {

@@ -80,6 +80,10 @@ export async function insertDocument(
   await tx.insert(documents).values(document);
 }
 
+export async function updateDocumentTitle(id: string, title: string) {
+  await db.update(documents).set({ title }).where(eq(documents.id, id));
+}
+
 // Ghi nhận tài liệu vừa được lưu: cập nhật updated_at theo giờ của MySQL
 export async function markDocumentUpdated(tx: DbTransaction, id: string) {
   await tx.update(documents).set({ updatedAt: sql`now()` }).where(eq(documents.id, id));

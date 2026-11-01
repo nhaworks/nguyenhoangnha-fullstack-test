@@ -143,6 +143,13 @@ export async function saveDocument(id: string, content: Buffer) {
   return getDocument(id);
 }
 
+// Đổi tiêu đề tài liệu (chỉ metadata, file không đổi). Tên file khi tải xuống lấy theo tiêu đề mới.
+export async function renameDocument(id: string, title: string) {
+  await findDocumentOrThrow(id);
+  await documentRepository.updateDocumentTitle(id, title.trim());
+  return getDocument(id);
+}
+
 // Trả về file để tải xuống, tên file = tiêu đề tài liệu
 export async function getDocumentDownload(id: string) {
   const document = await findDocumentOrThrow(id);

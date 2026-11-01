@@ -3,7 +3,7 @@ import { SpinnerIcon } from '../../../shared/components/icons';
 import { StatusView } from '../../../shared/components/StatusView';
 import { Toast } from '../../../shared/components/Toast';
 import { DocumentDetailHeader } from '../components/DocumentDetailHeader';
-import { EditorActions, EditorBackButton } from '../components/EditorTitleBar';
+import { EditorBackButton } from '../components/EditorTitleBar';
 import { SlidePreviewPane } from '../components/SlidePreviewPane';
 import { useDocumentRoute } from '../hooks/useDocumentRoute';
 import { useOpenedDocument } from '../hooks/useOpenedDocument';
@@ -37,33 +37,26 @@ export function DocumentDetailPage() {
     return <FullScreenSpinner />;
   }
 
-  const editorActions = (
-    <EditorActions
-      saveLabel={opened.saveLabel}
-      canSave={opened.canSave}
-      onSave={opened.save}
-      onDownload={opened.download}
-    />
-  );
-
   return (
     <div className="flex h-screen flex-col bg-slate-100 text-slate-900">
       {document.editable && opened.fileContent ? (
         <Suspense fallback={<FullScreenSpinner />}>
           <DocxEditorPane
             fileContent={opened.fileContent}
-            title={document.title}
+            title={opened.title}
+            onTitleChange={opened.changeTitle}
             editorRef={opened.editorRef}
             titleBarLeft={<EditorBackButton onBack={opened.leave} />}
-            titleBarRight={editorActions}
             onChange={opened.handleEditorChange}
             onSave={opened.save}
+            onDownload={opened.download}
           />
         </Suspense>
       ) : (
         <>
           <DocumentDetailHeader
-            title={document.title}
+            title={opened.title}
+            onTitleChange={opened.changeTitle}
             fileTypeLabel={document.fileTypeLabel}
             statusText={document.statusText}
             statusHint={`Từ mẫu ${document.templateName}`}

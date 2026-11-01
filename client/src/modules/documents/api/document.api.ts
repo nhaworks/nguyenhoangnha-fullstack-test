@@ -27,6 +27,11 @@ export async function saveDocumentFile(id: string, content: ArrayBuffer): Promis
   return response.data.data;
 }
 
+export async function renameDocumentTitle(id: string, title: string): Promise<DocumentInfo> {
+  const response = await http.patch<ApiResponse<DocumentInfo>>(`/documents/${encodeURIComponent(id)}`, { title });
+  return response.data.data;
+}
+
 export const KEEPALIVE_MAX_BYTES = 60 * 1024;
 
 export function saveDocumentFileOnExit(id: string, content: ArrayBuffer) {

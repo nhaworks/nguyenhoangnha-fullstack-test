@@ -201,6 +201,45 @@ describe('PUT /api/documents/:id', () => {
   });
 });
 
+function renameDocument(documentId: string, body: object) {
+  return testApp.app.inject({ method: 'PATCH', url: `/api/documents/${documentId}`, payload: body });
+}
+
+describe('PATCH /api/documents/:id', () => {
+  test('đổi tiêu đề (bỏ khoảng trắng 2 đầu), file không đổi, tải xuống theo tên mới', async () => {
+    const document = await createDocumentData('hop-dong-lao-dong');
+    const hashBefore = await getFileHash(`documents/demo/${document.id}.docx`);
+
+    const res = await renameDocument(document.id, { title: '  HĐLĐ Nguyễn Văn A  ' });
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.json().code, 200);
+    assert.equal(res.json().message, 'Đã đổi tên tài liệu');
+    assert.equal(res.json().data.title, 'HĐLĐ Nguyễn Văn A');
+
+    assert.equal((await getUrl(`/api/documents/${document.id}`)).json().data.title, 'HĐLĐ Nguyễn Văn A');
+    assert.equal(await getFileHash(`documents/demo/${document.id}.docx`), hashBefore);
+
+    const download = await getUrl(document.downloadUrl);
+    assert.equal(
+      download.headers['content-disposition'],
+      `attachment; filename*=UTF-8''${encodeURIComponent('HĐLĐ Nguyễn Văn A.docx')}`,
+    );
+  });
+
+  test('tiêu đề rỗng / toàn khoảng trắng / quá 200 ký tự / thiếu trả 400, không có tài liệu trả 404', async () => {
+    const document = await createDocumentData('bai-giang');
+
+    for (const body of [{ title: '' }, { title: '   ' }, { title: 'a'.repeat(201) }, {}]) {
+      const res = await renameDocument(document.id, body);
+      assert.equal(res.statusCode, 400, JSON.stringify(body));
+      assert.equal(res.json().data, null);
+    }
+
+    const missing = await renameDocument('00000000-0000-4000-8000-000000000000', { title: 'X' });
+    assert.deepEqual(missing.json(), { code: 404, message: 'Không tìm thấy tài liệu', data: null });
+  });
+});
+
 describe('GET /api/documents/:id/download', () => {
   test('tài liệu chưa sửa tải về giống hệt file mẫu', async () => {
     const document = await createDocumentData('gioi-thieu-du-an');

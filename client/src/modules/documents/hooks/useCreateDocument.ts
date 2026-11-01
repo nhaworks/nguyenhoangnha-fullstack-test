@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ToastMessage } from '../../../shared/components/Toast';
+import { navigateTo } from '../../../shared/navigation';
 import { createDocument, documentPath, type SourceTemplate } from '../application/document.application';
 
 const TOAST_DURATION_MS = 5000;
@@ -17,12 +18,7 @@ export function useCreateDocument(options: Options = {}) {
     setCreatingTemplateId(template.id);
     try {
       const document = await createDocument(template);
-      setToast({
-        type: 'success',
-        text: `Đã tạo tài liệu "${document.title}"`,
-        linkLabel: 'Mở tài liệu',
-        linkUrl: documentPath(document.id),
-      });
+      navigateTo(documentPath(document.id));
     } catch (error) {
       setToast({ type: 'error', text: (error as Error).message });
     } finally {

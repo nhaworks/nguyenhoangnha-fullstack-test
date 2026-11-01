@@ -17,9 +17,6 @@ export function EditorBackButton({ onBack }: { onBack: () => void }) {
 type EditorActionsProps = {
   statusText?: string;
   statusHint?: string;
-  saveLabel?: string;
-  canSave?: boolean;
-  onSave?: () => void;
   onDownload: () => void;
 };
 
@@ -30,17 +27,6 @@ export function EditorActions(props: EditorActionsProps) {
         <span title={props.statusHint} className="max-w-64 truncate text-xs text-slate-500 max-md:hidden">
           {props.statusText}
         </span>
-      )}
-      {props.saveLabel && (
-        <button
-          type="button"
-          onClick={props.onSave}
-          disabled={!props.canSave}
-          aria-live="polite"
-          className="h-8 min-w-20 rounded-lg bg-violet-600 px-3 text-sm font-medium text-white transition hover:bg-violet-500 disabled:cursor-default disabled:bg-violet-100 disabled:text-violet-700"
-        >
-          {props.saveLabel}
-        </button>
       )}
       <button
         type="button"

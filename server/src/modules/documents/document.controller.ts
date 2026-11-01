@@ -5,6 +5,7 @@ import * as documentService from './document.service.js';
 
 type CreateDocumentRequest = FastifyRequest<{ Params: { id: string }; Body?: { title?: string } }>;
 type DocumentIdRequest = FastifyRequest<{ Params: { id: string } }>;
+type RenameDocumentRequest = FastifyRequest<{ Params: { id: string }; Body: { title: string } }>;
 type SaveDocumentRequest = FastifyRequest<{ Params: { id: string }; Body: unknown }>;
 
 // POST /api/templates/:id/documents  (id = id của mẫu)
@@ -33,6 +34,12 @@ export async function saveDocument(request: SaveDocumentRequest, reply: FastifyR
   }
   const document = await documentService.saveDocument(request.params.id, request.body);
   return sendSuccess(reply, document, 'Đã lưu tài liệu');
+}
+
+// PATCH /api/documents/:id  (body: { title })
+export async function renameDocument(request: RenameDocumentRequest, reply: FastifyReply) {
+  const document = await documentService.renameDocument(request.params.id, request.body.title);
+  return sendSuccess(reply, document, 'Đã đổi tên tài liệu');
 }
 
 // GET /api/documents/:id/download

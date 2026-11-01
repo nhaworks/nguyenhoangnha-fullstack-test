@@ -61,7 +61,7 @@ Module này dùng module khác qua **hook** của nó (vd. trang thư viện m�
 
 - Dashboard giao diện sáng, menu trái có 3 mục:
   - **Mẫu tài liệu** (`/templates/docx`) và **Mẫu trình chiếu** (`/templates/pptx`): dùng chung `TemplateLibraryPage` với prop `docType`.
-  - **Quản lý tài liệu** (`/documents?type=docx|pptx`): tab **Tài liệu** / **Trình chiếu** (kèm số lượng), lưới thẻ các tài liệu user đã tạo, sửa gần nhất lên đầu, mỗi thẻ có trạng thái "Chưa chỉnh sửa · tạo lúc …" / "Cập nhật lúc …". Bấm **Chỉnh sửa** mở `/documents/:id` ở **màn hình riêng, không có menu dashboard**: tài liệu DOCX mở trong docx-editor; nút quay lại, nút trạng thái lưu (**Lưu** / **Đang lưu…** / **Đã lưu**, bấm hoặc Cmd/Ctrl+S để lưu ngay) và **Tải xuống** nằm ngay trên thanh tiêu đề của editor, không chiếm thêm hàng nào. **Tự lưu**: 2 giây sau lần gõ cuối; bấm quay lại hoặc Tải xuống thì lưu xong mới đi; chuyển tab / ẩn trình duyệt thì lưu ngay; refresh hoặc đóng tab thì gửi bản mới nhất bằng `fetch keepalive` (editor chuẩn bị sẵn bản .docx 0,4 giây sau mỗi lần gõ). Chỉ khi vừa gõ trong 0,4 giây cuối, hoặc file > 60 KB (giới hạn keepalive của trình duyệt), trình duyệt mới hỏi "Rời trang?" vì phần đó chưa kịp gửi. Tài liệu PPTX: thanh 1 dòng + xem ảnh slide và tải về.
+  - **Quản lý tài liệu** (`/documents?type=docx|pptx`): tab **Tài liệu** / **Trình chiếu** (kèm số lượng), lưới thẻ các tài liệu user đã tạo, sửa gần nhất lên đầu, mỗi thẻ có trạng thái "Chưa chỉnh sửa · tạo lúc …" / "Cập nhật lúc …". Tạo tài liệu từ mẫu xong (**Tạo mẫu** / **Dùng mẫu**) hoặc bấm **Chỉnh sửa** đều mở `/documents/:id` ở **màn hình riêng, không có menu dashboard**: tài liệu DOCX mở trong docx-editor; thanh tiêu đề của editor chỉ có nút quay lại và ô tên tài liệu. Menu **File** của editor: Open · Save (Cmd/Ctrl+S, lưu ngay) · **Export › Word (.docx)** (tải xuống, lưu trước nếu còn thay đổi) · Page setup. PDF / Markdown / Print của docx-editor cần converter chạy ở server (`@docx-editor.dev/docx-to-pdf`, docx-to-markdown) chưa cài nên đã ẩn. **Tự lưu**: 2 giây sau lần gõ cuối; bấm quay lại hoặc Export › Word (.docx) thì lưu xong mới đi; chuyển tab / ẩn trình duyệt thì lưu ngay; refresh hoặc đóng tab thì gửi bản mới nhất bằng `fetch keepalive` (editor chuẩn bị sẵn bản .docx 0,4 giây sau mỗi lần gõ). Chỉ khi vừa gõ trong 0,4 giây cuối, hoặc file > 60 KB (giới hạn keepalive của trình duyệt), trình duyệt mới hỏi "Rời trang?" vì phần đó chưa kịp gửi. Tài liệu PPTX: thanh 1 dòng + xem ảnh slide và tải về. **Đổi tên**: sửa thẳng ô tên trên thanh tiêu đề (DOCX dùng ô tên có sẵn của docx-editor, PPTX là ô nhập trên thanh 1 dòng), tự lưu 0,8 giây sau lần gõ cuối qua `PATCH /api/documents/:id`; quay lại / tải xuống thì lưu tên trước; tên rỗng không lưu.
 - Trạng thái màn hình (từ khoá, danh mục, mẫu đang xem trước) nằm trên URL, vd. `/templates/pptx?q=bao%20cao&category=bao-cao&preview=bai-giang`: F5 hay gửi link vẫn mở đúng màn, Back / Forward hoạt động.
 - Loại tài liệu và chữ hiển thị riêng của từng loại (tiêu đề, mô tả, ô tìm kiếm, "trang" / "slide") khai một chỗ trong `src/modules/templates/application/doc-types.ts`; menu trong `src/app/menu.tsx` (mỗi mục khai path, nhãn, icon, page). Thêm loại mới (vd. xlsx) = 1 phần tử ở mỗi file, không sửa component.
 - Chỉ hiển thị dữ liệu có thật từ API: số mẫu, danh mục, ảnh xem trước. Không có số liệu hay nút minh hoạ chưa dùng được.
@@ -185,7 +185,7 @@ Mọi response JSON cùng một dạng `{ code, message, data }`, trong đó `co
 
 | `code` | Khi nào | `message` ví dụ |
 |---|---|---|
-| 200 | Đọc / lưu thành công | `Thành công`, `Đã lưu tài liệu` |
+| 200 | Đọc / lưu / đổi tên thành công | `Thành công`, `Đã lưu tài liệu`, `Đã đổi tên tài liệu` |
 | 201 | Tạo tài liệu thành công | `Đã tạo tài liệu` |
 | 400 | Tham số / body sai (id sai định dạng, `title` rỗng, file lưu lên không phải .docx…) | `File gửi lên không phải định dạng .docx` |
 | 404 | Không có mẫu / tài liệu / file / route | `Không tìm thấy mẫu`, `Không tìm thấy tài liệu`, `Không tìm thấy file` |
@@ -335,6 +335,12 @@ Server kiểm tra file đúng là .docx (file zip có `word/document.xml`), ghi 
 
 **200** `message: "Đã lưu tài liệu"`, `data` = tài liệu sau khi lưu (`updatedAt` mới) · **400** không phải .docx · **404** · **409** loại chưa có editor (pptx) · **413** · **415** không gửi nội dung DOCX
 
+### `PATCH /api/documents/:id`
+
+Đổi tiêu đề tài liệu (docx và pptx). Body JSON `{ "title": "HĐLĐ Nguyễn Văn A" }` (1–200 ký tự, không toàn khoảng trắng, server bỏ khoảng trắng 2 đầu). Chỉ đổi metadata, file không đổi; tên file tải xuống lấy theo tiêu đề mới. MySQL tự cập nhật `updated_at`.
+
+**200** `message: "Đã đổi tên tài liệu"`, `data` = tài liệu sau khi đổi · **400** thiếu / sai `title` · **404**
+
 ### `GET /api/documents/:id/download`
 
 Tải file (`Content-Disposition: attachment`, tên file = tiêu đề, giữ tiếng Việt qua `filename*`). Chưa sửa → bản sao giống hệt mẫu; đã sửa → bản lưu gần nhất. **404**
@@ -372,7 +378,7 @@ cd server
 npm test
 ```
 
-`node:test` + `app.inject()` (không mở cổng), database riêng `TEST_DB_NAME` (mặc định `template_library_test`, tự tạo + migrate; host / user / mật khẩu lấy từ `.env`) và bản sao tạm của `storage/`, nên không đụng dữ liệu thật. Có test cho: tìm `hop dong` ra `Hợp đồng…`; tạo / lưu tài liệu xong SHA-256 file mẫu không đổi; chặn path traversal; DOCX lưu xong vẫn còn heading, đậm, danh sách, bảng và `updated_at` tăng; file lưu lên không phải .docx bị từ chối; danh sách tài liệu đúng loại / sắp xếp; `code` trong body = HTTP status; mã lỗi 400 / 404 / 409 / 413.
+`node:test` + `app.inject()` (không mở cổng), database riêng `TEST_DB_NAME` (mặc định `template_library_test`, tự tạo + migrate; host / user / mật khẩu lấy từ `.env`) và bản sao tạm của `storage/`, nên không đụng dữ liệu thật. Có test cho: tìm `hop dong` ra `Hợp đồng…`; tạo / lưu tài liệu xong SHA-256 file mẫu không đổi; chặn path traversal; DOCX lưu xong vẫn còn heading, đậm, danh sách, bảng và `updated_at` tăng; file lưu lên không phải .docx bị từ chối; danh sách tài liệu đúng loại / sắp xếp; đổi tên tài liệu (trim, tên file tải xuống theo tiêu đề mới); `code` trong body = HTTP status; mã lỗi 400 / 404 / 409 / 413.
 
 ## Biến môi trường (server)
 

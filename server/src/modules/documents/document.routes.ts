@@ -30,6 +30,13 @@ const createDocumentBody = {
   properties: { title: titleSchema },
 };
 
+const renameDocumentBody = {
+  type: 'object',
+  required: ['title'],
+  additionalProperties: false,
+  properties: { title: titleSchema },
+};
+
 export async function documentRoutes(app: FastifyInstance) {
   // Nhận body là file .docx nguyên bản (Buffer) khi Content-Type là DOCX
   app.addContentTypeParser(MIME_TYPES.docx, { parseAs: 'buffer', bodyLimit: SAVE_BODY_LIMIT }, (request, body, done) => {
@@ -50,6 +57,12 @@ export async function documentRoutes(app: FastifyInstance) {
     '/api/documents/:id',
     { bodyLimit: SAVE_BODY_LIMIT, schema: { params: documentIdParams } },
     documentController.saveDocument,
+  );
+
+  app.patch(
+    '/api/documents/:id',
+    { schema: { params: documentIdParams, body: renameDocumentBody } },
+    documentController.renameDocument,
   );
 
   app.get('/api/documents/:id/download', { schema: { params: documentIdParams } }, documentController.downloadDocument);
