@@ -15,6 +15,8 @@ Danh mục bàn giao: [BAN-GIAO.md](BAN-GIAO.md).
 
 ![Kiến trúc client và server](docs/architecture.png)
 
+File gốc sơ đồ kiến trúc và ERD (tự vẽ): [Google Drive](https://drive.google.com/file/d/1lp0Wi19g6mVhmDFid8ayPbQyP_HFufid/view?usp=sharing).
+
 Backend chia module theo nghiệp vụ `templates`, `categories`, `documents`:
 
 ```
@@ -85,6 +87,8 @@ npm run dev
 ```
 
 Mở http://localhost:5173
+
+Muốn làm lại dữ liệu từ đầu: `cd server && npm run db:truncate` (xoá database và các tài liệu đã tạo, chạy lại migration; mẫu được nạp lại khi khởi động server).
 
 ### Cấu hình
 
@@ -166,6 +170,8 @@ Mọi file nằm trong `server/storage/`; database chỉ lưu đường dẫn t�
 | `storage/previews/<id>/1.png, 2.png…` | Ảnh xem trước từng trang / slide |
 | `storage/documents/demo/<uuid>.<đuôi>` | Tài liệu người dùng tạo (không commit) |
 
+**Bộ mẫu thử nghiệm:** 5 mẫu văn bản (hợp đồng lao động, CV có ảnh đại diện, 2 thời khoá biểu, báo cáo tổng kết) và 7 bộ trình chiếu, nội dung tiếng Việt, do ứng viên tự sinh bằng script (python-docx, python-pptx), ảnh xem trước render bằng LibreOffice. Không dùng tài liệu có bản quyền hay dữ liệu thật; thông tin cá nhân, tên công ty, số liệu đều là chỗ trống trong `[ngoặc vuông]`. Mỗi mẫu văn bản có đủ heading, chữ đậm, danh sách và bảng để kiểm tra việc giữ định dạng.
+
 **Quản lý:** khi khởi động, server đọc `manifest.json` và upsert loại, danh mục, mẫu, ảnh xem trước vào DB theo `code` / `slug` (chạy lại không đổi id). Danh sách mẫu và danh mục ở giao diện đều lấy từ API, không hardcode.
 
 **Phân phối:** ảnh xem trước qua `/files/previews/<id>/<n>.png`, file mẫu qua `/api/templates/:id/file`, tài liệu qua `/api/documents/:id/download` (tên file tải về theo tiêu đề tài liệu). MIME suy theo phần mở rộng tại một chỗ (`server/src/storage.ts`). Mọi đường dẫn đi qua `getStoragePath()`: resolve rồi kiểm tra còn nằm trong thư mục cho phép, nên chặn được path traversal; client không bao giờ gửi đường dẫn file.
@@ -190,7 +196,7 @@ Mọi file nằm trong `server/storage/`; database chỉ lưu đường dẫn t�
 **Xử lý lỗi**
 
 - Mọi input (params, query, body) validate bằng JSON schema của Fastify; route lưu tài liệu giới hạn 20 MB.
-- Service ném `AppError(status, message)`; error handler chung đổi thành response chuẩn ở trên. Lỗi không lường trước trả 500, chỉ ghi log ở server.
+- Service ném `AppError(status, message)`; error handler chung đổi thành response chuẩn ở trên. Lỗi validate và lỗi của framework (body quá lớn, Content-Type sai, JSON hỏng) cũng được đổi sang câu tiếng Việt, vd. `Dữ liệu không hợp lệ: body/title`. Lỗi không lường trước trả 500, chỉ ghi log ở server.
 - Từ khoá tìm kiếm được escape `%`, `_`, `\` trước khi đưa vào `LIKE`; truy vấn qua Drizzle có tham số, không nối chuỗi SQL.
 - Frontend: axios interceptor đổi mọi lỗi thành `ApiError` với câu tiếng Việt từ server. Mọi màn có dữ liệu đều có trạng thái đang tải, lỗi (nút Thử lại), rỗng / không tìm thấy (nút Xoá bộ lọc). Tạo hoặc lưu tài liệu lỗi thì báo bằng toast; rời trang khi còn nội dung chưa gửi được thì trình duyệt hỏi lại.
 
@@ -223,6 +229,14 @@ npm run test:cases
 | drizzle-orm | 0.45.4 | Schema và query builder MySQL | Apache-2.0 |
 | mysql2 | 3.24.6 | Driver MySQL | MIT |
 | @docx-editor.dev/react | 2.33.0 | Editor DOCX trên trình duyệt | Apache-2.0 |
+| @docx-editor.dev/core | 2.33.0 | Lõi đọc, hiển thị, ghi DOCX của editor | Apache-2.0 |
+
+**Giấy phép editor DOCX**
+
+- Mã nguồn: https://github.com/eigenpal/docx-editor (trang chủ https://docx-editor.dev), giấy phép Apache-2.0 cho cả `@docx-editor.dev/react` và `@docx-editor.dev/core`.
+- Apache-2.0 cho phép dùng, sửa và phân phối, kể cả cho mục đích thương mại. Khi phân phối lại cần giữ file `LICENSE` và các thông báo bản quyền, ghi rõ phần đã sửa; giấy phép kèm quyền sử dụng sáng chế của tác giả. Dự án dùng nguyên gói từ npm, không sửa mã nguồn editor.
+- Phụ thuộc của editor: ProseMirror, fast-xml-parser, fflate, bidi-js, utif2, clsx, @radix-ui/react-select (MIT); class-variance-authority, emf-converter, @docx-editor.dev/i18n (Apache-2.0). Bản build của `@docx-editor.dev/core` có kèm harfbuzzjs (MIT), HarfBuzz ("Old MIT") và bảng hình học dựng sẵn trích từ đặc tả ECMA-376; toàn văn các giấy phép này nằm trong `THIRD_PARTY_NOTICES.md` và thư mục `licenses/` của gói.
+- Đã rà toàn bộ phụ thuộc chạy của cả frontend và backend: chỉ có MIT, Apache-2.0, ISC, BSD-3-Clause, 0BSD, BlueOak-1.0.0, Zlib; không có GPL hay AGPL.
 
 ### Mở rộng cho loại tài liệu khác
 
