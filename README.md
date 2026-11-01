@@ -9,9 +9,7 @@ Danh mục bàn giao: [BAN-GIAO.md](BAN-GIAO.md).
 
 ## Video demo
 
-![Demo luồng chính của Bài 1 và Bài 2](docs/demo.gif)
-
-Luồng chính của Bài 1 (xem, tìm, lọc, xem trước, tạo, sửa, lưu, tải .docx) và Bài 2 (xem, tìm, lọc, xem từng slide, tạo bản sao). Bản video gốc (~2 phút): [docs/demo-recording.mp4](docs/demo-recording.mp4), GitHub không phát được trực tiếp, bấm **View raw** để tải về xem.
+![Demo luồng chính của Bài 1 và Bài 2](docs/demo.gif) [docs/demo-recording.mp4](docs/demo-recording.mp4)
 
 ## Công nghệ
 
@@ -20,13 +18,12 @@ Luồng chính của Bài 1 (xem, tìm, lọc, xem trước, tạo, sửa, lưu,
 | Backend (`server/`, port 3000) | Node.js 22, Fastify 5, TypeScript, Drizzle ORM, MySQL 8 |
 | Frontend (`client/`, port 5173) | React 19, Vite, TypeScript, Tailwind CSS 4, axios |
 | Editor DOCX | `@docx-editor.dev/react` |
-| Kiểm thử | `node:test` + `app.inject()` |
 
 ## Kiến trúc
 
 ![Kiến trúc client và server](docs/architecture.png)
 
-Backend chia module theo nghiệp vụ (`templates`, `categories`, `documents`), 
+Backend chia module theo nghiệp vụ `templates`, `categories`, `documents`, 
 
 ```
 Routes ──► Controller ──► Service ──► Repository ──► MySQL
@@ -72,30 +69,34 @@ nguyenhoangnha-fullstack-test/
     └── test-cases-result.csv
 ```
 
-## Cài đặt và chạy
+### ERD
 
-Cần: **Node.js 22+**, **MySQL 8.0+** đang chạy ở `127.0.0.1:3306`, user `root` không mật khẩu (khác thì xem [Cấu hình](#cấu-hình)).
+![Sơ đồ cơ sở dữ liệu](docs/erd.png)
+
+## Hướng dẫn cài đặt & start
+Yêu cầu:
+**Node.js 22+**, **MySQL 8.0+**
 
 **Terminal 1 – Backend**
 
 ```bash
 cd server
+cp .env.example .env
 npm install
 npm run db:migrate
 npm run dev
 ```
 
-Muốn làm lại từ đầu: `npm run db:truncate` xoá hẳn database `DB_NAME` rồi tự chạy migration; mẫu được nạp lại khi `npm run dev` khởi động.
-
 **Terminal 2 – Frontend**
 
 ```bash
 cd client
+cp .env.example .env
 npm install
 npm run dev
 ```
 
-Mở http://localhost:5173.
+Mở http://localhost:5173
 
 ### Cấu hình
 
@@ -112,9 +113,7 @@ Mở http://localhost:5173.
 
 - Swagger UI: http://localhost:3000/api/docs (hoặc http://localhost:5173/api/docs)
 
-### ERD
 
-![Sơ đồ cơ sở dữ liệu](docs/erd.png)
 
 ## Lưu trữ và tạo bản sao
 
