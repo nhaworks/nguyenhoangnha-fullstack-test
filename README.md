@@ -9,7 +9,9 @@ Danh mục bàn giao: [BAN-GIAO.md](BAN-GIAO.md).
 
 ## Video demo
 
-[docs/demo-recording.mp4](docs/demo-recording.mp4) (~2 phút): luồng chính của Bài 1 (xem, tìm, lọc, xem trước, tạo, sửa, lưu, tải .docx) và Bài 2 (xem, tìm, lọc, xem từng slide, tạo bản sao).
+![Demo luồng chính của Bài 1 và Bài 2](docs/demo.gif)
+
+Luồng chính của Bài 1 (xem, tìm, lọc, xem trước, tạo, sửa, lưu, tải .docx) và Bài 2 (xem, tìm, lọc, xem từng slide, tạo bản sao). Bản video gốc (~2 phút): [docs/demo-recording.mp4](docs/demo-recording.mp4), GitHub không phát được trực tiếp, bấm **View raw** để tải về xem.
 
 ## Công nghệ
 
