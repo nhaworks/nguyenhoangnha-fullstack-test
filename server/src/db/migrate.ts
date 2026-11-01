@@ -4,7 +4,7 @@ import { migrate } from 'drizzle-orm/mysql2/migrator';
 import mysql from 'mysql2/promise';
 import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } from '../config.js';
 
-export async function migrateDatabase() {
+export async function migrateDatabase({ dropExisting = false } = {}) {
   if (!/^\w+$/.test(DB_NAME)) {
     throw new Error(`DB_NAME không hợp lệ: "${DB_NAME}"`);
   }
@@ -18,6 +18,9 @@ export async function migrateDatabase() {
   });
 
   try {
+    if (dropExisting) {
+      await connection.query(`DROP DATABASE IF EXISTS \`${DB_NAME}\``);
+    }
     await connection.query(
       `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci`,
     );
@@ -32,6 +35,7 @@ export async function migrateDatabase() {
 
 const isRunDirectly = process.argv[1] === fileURLToPath(import.meta.url);
 if (isRunDirectly) {
-  await migrateDatabase();
-  console.log(`Database "${DB_NAME}" đã được cập nhật`);
+  const dropExisting = process.argv.includes('--truncate');
+  await migrateDatabase({ dropExisting });
+  console.log(dropExisting ? `Database "${DB_NAME}" đã được xoá và tạo lại` : `Database "${DB_NAME}" đã được cập nhật`);
 }

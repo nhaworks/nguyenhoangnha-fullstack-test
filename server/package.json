@@ -11,6 +11,7 @@
     "start": "node dist/index.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
+    "db:truncate": "tsx src/db/migrate.ts --truncate",
     "test": "node --import tsx --test --test-concurrency=1 \"test/**/*.test.ts\"",
     "test:cases": "node --import tsx --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./test/testcase-reporter.ts --test-reporter-destination=../docs/test-cases-result.csv test/testcases.test.ts"
   },
