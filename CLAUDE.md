@@ -50,7 +50,7 @@ Excel không có cột tiêu chí: tiêu chí của task = yêu cầu tương �
    - Bị chặn → `set <ID> blocked "<lý do>"`.
 6. Người dùng nói "làm tiếp" → chọn dòng `pending` có ID nhỏ nhất; báo ID trước khi làm.
 7. Chỉ sửa `features.xlsx` qua `scripts/features.py` (giữ định dạng). Script báo lỗi ghi file → nhắc người dùng đóng file trong Excel.
-8. Tính năng đụng tới API hoặc schema → cập nhật README (mục API) / `docs/database.md` trong cùng lượt.
+8. Tính năng đụng tới API hoặc schema → cập nhật schema Swagger ở routes (README chỉ có link Swagger + dạng response / mã lỗi, không liệt kê từng endpoint) / `docs/database.md` trong cùng lượt.
 9. Cuối lượt báo: ID đã làm, trạng thái mới, phần chưa kiểm chứng.
 
 ## Kiến trúc mã
@@ -71,11 +71,12 @@ Trình duyệt ─► React (Vite :5173) ─/api/*─► Fastify (:3000) ─► 
   - Repository: chỉ truy vấn DB qua `db` (Drizzle). Không chứa nghiệp vụ.
   - Module dùng lại module khác qua service / repository của nó; không import routes / controller của nhau.
 - Mọi input validate bằng JSON schema của Fastify; giới hạn kích thước body cho route lưu nội dung.
+- Route mới khai thêm `tags`, `response` (dùng `okResponse` / `errorResponse` / `fileResponse` trong `src/openapi.ts`; không ghi `summary` / `description`) để có trong Swagger `/api/docs`; route gắn thẳng trong `app.ts` phải bọc trong `app.register` (đăng ký sau plugin swagger). Schema `response` chỉ để tài liệu (serializer là `JSON.stringify`).
 - Response JSON luôn có dạng `{ "code", "message", "data" }` (gửi bằng `sendSuccess()` / `sendError()` trong `src/response.ts`): `code` = HTTP status dạng số (200, 201, 400, 404, 409, 413, 500, 503), `message` câu tiếng Việt cho người dùng, `data` dữ liệu (lỗi → `null`). `code` trong body luôn bằng HTTP status. Endpoint trả file (preview, file mẫu, tải xuống) trả nhị phân, không bọc.
 - Lỗi: ném `new AppError(statusCode, message)`; error handler chung trả `sendError(reply, status, message)` (400 validate, 404 không tìm thấy, 500 lỗi lạ). Không lộ stack hay đường dẫn file.
 - Viết code cho fresher đọc được: tên biến / hàm rõ nghĩa, kiểu dữ liệu khai rõ (`type TemplateRow = {...}`) thay vì `ReturnType<...>`, mỗi dòng một việc, comment tiếng Việt ngắn ở chỗ không hiển nhiên.
 - `LIKE`: escape `%`, `_`, `\` trong từ khoá người dùng nhập.
-- Khác biệt theo loại tài liệu (docx / pptx) rẽ nhánh theo `doc_type_code` trong service, một chỗ; thêm loại mới (vd. xlsx) = 1 dòng `doc_types` + MIME trong `storage.ts` + mẫu trong manifest.
+- Khác biệt theo loại tài liệu (docx / pptx) rẽ nhánh theo `doc_types.code` trong service, một chỗ; thêm loại mới (vd. xlsx) = 1 dòng `doc_types` + MIME trong `storage.ts` + mẫu trong manifest.
 
 ### Cơ sở dữ liệu (MySQL + Drizzle ORM)
 
@@ -84,8 +85,8 @@ Trình duyệt ─► React (Vite :5173) ─/api/*─► Fastify (:3000) ─► 
 - Database collation `utf8mb4_0900_ai_ci`: `LIKE` và `ORDER BY` tự bỏ qua hoa thường và dấu tiếng Việt (`đ` = `d`). Tìm kiếm dùng `like()` thẳng trên cột, **không** viết hàm bỏ dấu, không thêm cột phụ.
 - Phiên MySQL chạy UTC (đặt sẵn trong `src/db/index.ts`); không đổi, nếu không thời gian lệch 7 tiếng.
 - Query bằng Drizzle query builder; raw SQL chỉ qua `sql\`\`` có tham số, không nối chuỗi từ input.
-- `templates.id` là slug; `documents.id` = `crypto.randomUUID()`.
-- Loại của tài liệu lấy qua `documents.template_id → templates.doc_type_code`; không thêm cột loại vào `documents`.
+- Mọi bảng có khoá chính `id` INT AUTO_INCREMENT, chỉ dùng trong DB (khoá ngoại INT). API / URL dùng khoá công khai UNIQUE: `doc_types.code`, `categories.slug`, `templates.slug`, `documents.uuid` (= `crypto.randomUUID()`), trả trong JSON dưới tên `id`; không trả id số.
+- Loại của tài liệu lấy qua `documents.template_id → templates.doc_type_id → doc_types.code`; không thêm cột loại vào `documents`.
 - Ghi nhiều bảng, hoặc ghi file + DB → bọc trong `db.transaction(async (tx) => ...)`.
 
 ### Lưu trữ và template
@@ -124,7 +125,7 @@ Trình duyệt ─► React (Vite :5173) ─/api/*─► Fastify (:3000) ─► 
 
 ### Chung
 
-- Ưu tiên stdlib / tính năng native trước thư viện. Thêm thư viện → ghi tên, phiên bản, license vào README (mục Thư viện bên thứ ba). Thư viện AGPL hoặc license không rõ: hỏi người dùng trước.
+- Ưu tiên stdlib / tính năng native trước thư viện. Thêm thư viện → ghi tên, phiên bản, license vào README (mục Thư viện bên thứ ba; phía giao diện chỉ ghi `@docx-editor.dev/react`). Thư viện AGPL hoặc license không rõ: hỏi người dùng trước.
 - Test: `node:test` + `app.inject()`, `test/setup.ts` đổi `DB_NAME` sang `TEST_DB_NAME` (mặc định `template_library_test`, migrate trước khi chạy) và `STORAGE_ROOT` tạm; không đụng dữ liệu thật.
 - README phải ghi rõ có dùng AI (Claude Code) hỗ trợ lập trình.
 
@@ -143,6 +144,8 @@ Trình duyệt ─► React (Vite :5173) ─/api/*─► Fastify (:3000) ─► 
 | PUT | `/api/documents/:id` | Lưu file .docx từ editor (body là file) |
 | GET | `/api/documents/:id/download` | Tải file |
 | GET | `/files/previews/*` | Ảnh preview / thumbnail |
+| PATCH | `/api/documents/:id` | Đổi tiêu đề tài liệu (body JSON `{ title }`) |
+| GET | `/api/docs` · `/api/docs/json` | Swagger UI · file OpenAPI 3 |
 
 ## Cấu trúc thư mục đích
 
@@ -153,6 +156,7 @@ server/src/
 ├── config.ts              # đọc server/.env: PORT, DB_*, STORAGE_ROOT, DEFAULT_USER_ID
 ├── errors.ts              # AppError(statusCode, message)
 ├── response.ts            # sendSuccess / sendError / sendFile
+├── openapi.ts             # Swagger: schema dùng chung + okResponse / errorResponse / fileResponse, UI /api/docs
 ├── storage.ts             # STORAGE_ROOT, resolve file_path an toàn, map MIME
 ├── db/schema.ts           # cấu trúc DB (Drizzle) — nguồn sự thật
 ├── db/index.ts            # pool mysql2 + instance drizzle
@@ -194,7 +198,7 @@ Thư mục / file chưa có thì tạo khi tính năng đầu tiên cần; khôn
 
 Không nằm trong `features.xlsx`; kiểm trước khi nộp:
 
-- README: kiến trúc, công nghệ, cài đặt + chạy thử, API (request / response / mã lỗi), cách lưu trữ và tạo bản sao, xử lý lỗi + kiểm thử, thư viện + license, khai báo dùng AI.
+- README: kiến trúc (ảnh `docs/architecture.png`, ERD `docs/erd.png`, cây thư mục không comment), công nghệ, cài đặt + chạy thử, API (link Swagger + dạng response / mã lỗi), cách lưu trữ và tạo bản sao, xử lý lỗi + kiểm thử, thư viện + license, khai báo dùng AI.
 - `docs/database.md` khớp `schema.ts`.
 - README mục **Trạng thái**: đã làm / chưa làm (lấy từ `features.xlsx`), giới hạn kỹ thuật (editor DOCX, chưa có editor PPTX) và hướng mở rộng (ONLYOFFICE / Collabora).
 - Bộ mẫu thử nghiệm commit sẵn, chạy được không cần LibreOffice.

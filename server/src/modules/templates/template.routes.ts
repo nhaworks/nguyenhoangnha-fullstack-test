@@ -1,4 +1,6 @@
 import type { FastifyInstance } from 'fastify';
+import { errorResponse, fileResponse, okResponse } from '../../openapi.js';
+import { MIME_TYPES } from '../../storage.js';
 import * as templateController from './template.controller.js';
 
 // id của mẫu là slug: chữ thường, số và dấu gạch ngang (vd. "hop-dong-lao-dong")
@@ -19,11 +21,56 @@ const listTemplatesQuery = {
   },
 };
 
+
 export async function templateRoutes(app: FastifyInstance) {
-  app.get('/api/templates', { schema: { querystring: listTemplatesQuery } }, templateController.listTemplates);
-  app.get('/api/templates/:id', { schema: { params: templateIdParams } }, templateController.getTemplate);
-  app.get('/api/templates/:id/file', { schema: { params: templateIdParams } }, templateController.getTemplateFile);
+  app.get(
+    '/api/templates',
+    {
+      schema: {
+        tags: ['Templates'],
+        querystring: listTemplatesQuery,
+        response: {
+          200: okResponse({ type: 'array', items: { $ref: 'Template#' } }),
+          400: errorResponse,
+        },
+      },
+    },
+    templateController.listTemplates,
+  );
+
+  app.get(
+    '/api/templates/:id',
+    {
+      schema: {
+        tags: ['Templates'],
+        params: templateIdParams,
+        response: { 200: okResponse({ $ref: 'TemplateDetail#' }), 400: errorResponse, 404: errorResponse },
+      },
+    },
+    templateController.getTemplate,
+  );
+
+  app.get(
+    '/api/templates/:id/file',
+    {
+      schema: {
+        tags: ['Templates'],
+        params: templateIdParams,
+        response: { 200: fileResponse([MIME_TYPES.docx, MIME_TYPES.pptx]), 404: errorResponse },
+      },
+    },
+    templateController.getTemplateFile,
+  );
 
   // Ảnh preview / thumbnail: /files/previews/<templateId>/<số thứ tự>.png
-  app.get('/files/previews/*', templateController.getPreviewImage);
+  app.get(
+    '/files/previews/*',
+    {
+      schema: {
+        tags: ['Files'],
+        response: { 200: fileResponse(['image/png']), 404: errorResponse },
+      },
+    },
+    templateController.getPreviewImage,
+  );
 }

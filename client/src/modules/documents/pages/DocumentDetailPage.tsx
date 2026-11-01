@@ -58,14 +58,9 @@ export function DocumentDetailPage() {
             title={opened.title}
             onTitleChange={opened.changeTitle}
             fileTypeLabel={document.fileTypeLabel}
-            statusText={document.statusText}
-            statusHint={`Từ mẫu ${document.templateName}`}
             onBack={opened.leave}
             onDownload={opened.download}
           />
-          <p className="shrink-0 border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-xs text-amber-800">
-            Chưa hỗ trợ chỉnh sửa trình chiếu trực tuyến. Tải xuống để mở bằng PowerPoint hoặc LibreOffice Impress.
-          </p>
           <div className="min-h-0 flex-1">
             <SlidePreviewPane templateId={document.templateId} title={document.title} />
           </div>

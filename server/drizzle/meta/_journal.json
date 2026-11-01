@@ -15,6 +15,13 @@
       "when": 1793507169932,
       "tag": "0001_drop_content_html",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1793515837921,
+      "tag": "0002_recreate_tables_with_int_ids",
+      "breakpoints": true
     }
   ]
 }

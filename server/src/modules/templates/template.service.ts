@@ -3,19 +3,20 @@ import { openStoredFile } from '../../storage.js';
 import * as templateRepository from './template.repository.js';
 import type { TemplateFilter, TemplateRow } from './template.repository.js';
 
-// DB lưu đường dẫn ảnh dạng "previews/<id>/1.png", client cần URL "/files/previews/<id>/1.png"
+// DB lưu đường dẫn ảnh dạng "previews/<slug>/1.png", client cần URL "/files/previews/<slug>/1.png"
 function toImageUrl(imagePath: string) {
   return '/files/' + imagePath;
 }
 
-// Dữ liệu mẫu trả cho client (không trả đường dẫn file trên server)
+// Dữ liệu mẫu trả cho client (không trả đường dẫn file trên server).
+// `id` trả cho client là slug; id số tự tăng chỉ dùng trong DB.
 function toTemplateResponse(row: TemplateRow) {
   return {
-    id: row.id,
+    id: row.slug,
     type: row.type,
     name: row.name,
     description: row.description,
-    category: { id: row.categoryId, name: row.categoryName },
+    category: { id: row.categorySlug, name: row.categoryName },
     thumbnailUrl: row.thumbnailPath ? toImageUrl(row.thumbnailPath) : null,
   };
 }
@@ -28,22 +29,22 @@ export async function getTemplates(filter: TemplateFilter) {
   return rows.map(toTemplateResponse);
 }
 
-// Lấy mẫu theo id, không có thì báo 404. Module documents cũng dùng hàm này.
-export async function findTemplateOrThrow(id: string) {
-  const template = await templateRepository.findTemplateById(id);
+// Lấy mẫu theo slug (id trên URL), không có thì báo 404. Module documents cũng dùng hàm này.
+export async function findTemplateOrThrow(slug: string) {
+  const template = await templateRepository.findTemplateBySlug(slug);
   if (!template) {
     throw new AppError(404, 'Không tìm thấy mẫu');
   }
   return template;
 }
 
-export async function getTemplateDetail(id: string) {
-  const template = await findTemplateOrThrow(id);
-  const previews = await templateRepository.findPreviews(id);
+export async function getTemplateDetail(slug: string) {
+  const template = await findTemplateOrThrow(slug);
+  const previews = await templateRepository.findPreviews(template.id);
 
   return {
     ...toTemplateResponse(template),
-    fileUrl: `/api/templates/${id}/file`,
+    fileUrl: `/api/templates/${template.slug}/file`,
     previews: previews.map((preview) => ({
       position: preview.position,
       url: toImageUrl(preview.imagePath),
@@ -53,8 +54,8 @@ export async function getTemplateDetail(id: string) {
   };
 }
 
-export async function getTemplateFile(id: string) {
-  const template = await findTemplateOrThrow(id);
+export async function getTemplateFile(slug: string) {
+  const template = await findTemplateOrThrow(slug);
   return openStoredFile(template.filePath, 'templates');
 }
 

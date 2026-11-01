@@ -1,11 +1,9 @@
-import { EditorActions, EditorBackButton } from './EditorTitleBar';
+import { DownloadButton, EditorBackButton } from './EditorTitleBar';
 
 type DocumentDetailHeaderProps = {
   title: string;
   onTitleChange: (title: string) => void;
   fileTypeLabel: string;
-  statusText: string;
-  statusHint: string;
   onBack: () => void;
   onDownload: () => void;
 };
@@ -23,7 +21,7 @@ export function DocumentDetailHeader(props: DocumentDetailHeaderProps) {
         title={props.title}
         className="min-w-0 flex-1 truncate rounded-md px-1.5 py-1 text-sm font-semibold text-slate-900 outline-none hover:bg-slate-100 focus:bg-white focus:ring-2 focus:ring-violet-300"
       />
-      <EditorActions statusText={props.statusText} statusHint={props.statusHint} onDownload={props.onDownload} />
+      <DownloadButton onDownload={props.onDownload} />
     </header>
   );
 }

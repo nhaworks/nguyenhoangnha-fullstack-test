@@ -14,30 +14,17 @@ export function EditorBackButton({ onBack }: { onBack: () => void }) {
   );
 }
 
-type EditorActionsProps = {
-  statusText?: string;
-  statusHint?: string;
-  onDownload: () => void;
-};
-
-export function EditorActions(props: EditorActionsProps) {
+export function DownloadButton({ onDownload }: { onDownload: () => void }) {
   return (
-    <div className="flex items-center gap-2">
-      {props.statusText && (
-        <span title={props.statusHint} className="max-w-64 truncate text-xs text-slate-500 max-md:hidden">
-          {props.statusText}
-        </span>
-      )}
-      <button
-        type="button"
-        onClick={props.onDownload}
-        aria-label="Tải xuống"
-        title="Tải xuống"
-        className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700"
-      >
-        <DownloadIcon className="size-4" />
-        <span className="max-lg:hidden">Tải xuống</span>
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={onDownload}
+      aria-label="Tải xuống"
+      title="Tải xuống"
+      className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:text-violet-700"
+    >
+      <DownloadIcon className="size-4" />
+      <span className="max-lg:hidden">Tải xuống</span>
+    </button>
   );
 }

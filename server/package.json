@@ -15,6 +15,8 @@
     "samples": "uv run scripts/samples.py"
   },
   "dependencies": {
+    "@fastify/swagger": "^9.9.2",
+    "@fastify/swagger-ui": "^6.1.2",
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.7",
     "mysql2": "^3.24.6"

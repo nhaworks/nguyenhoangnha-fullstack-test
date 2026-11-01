@@ -4,9 +4,10 @@ import { docTypes, documents, templatePreviews, templates } from '../../db/schem
 
 // Một tài liệu đọc từ DB. Bảng documents không có cột loại,
 // nên type, extension và tên mẫu lấy qua mẫu gốc (documents.template_id → templates → doc_types).
+// uuid / templateSlug là khoá công khai trả cho client; id số tự tăng chỉ dùng trong DB.
 export type DocumentRow = {
-  id: string;
-  templateId: string;
+  uuid: string;
+  templateSlug: string;
   templateName: string;
   title: string;
   filePath: string;
@@ -16,31 +17,31 @@ export type DocumentRow = {
   extension: string;
 };
 
-export async function findDocumentById(id: string): Promise<DocumentRow | undefined> {
+export async function findDocumentByUuid(uuid: string): Promise<DocumentRow | undefined> {
   const rows = await db
     .select({
-      id: documents.id,
-      templateId: documents.templateId,
+      uuid: documents.uuid,
+      templateSlug: templates.slug,
       templateName: templates.name,
       title: documents.title,
       filePath: documents.filePath,
       createdAt: documents.createdAt,
       updatedAt: documents.updatedAt,
-      type: templates.docTypeCode,
+      type: docTypes.code,
       extension: docTypes.extension,
     })
     .from(documents)
     .innerJoin(templates, eq(templates.id, documents.templateId))
-    .innerJoin(docTypes, eq(docTypes.code, templates.docTypeCode))
-    .where(eq(documents.id, id));
+    .innerJoin(docTypes, eq(docTypes.id, templates.docTypeId))
+    .where(eq(documents.uuid, uuid));
 
   return rows[0];
 }
 
 // Một dòng trong danh sách tài liệu, kèm ảnh thumbnail của mẫu gốc
 export type DocumentListRow = {
-  id: string;
-  templateId: string;
+  uuid: string;
+  templateSlug: string;
   templateName: string;
   title: string;
   type: string;
@@ -54,17 +55,18 @@ export type DocumentListRow = {
 export async function findDocumentsOfUser(userId: string): Promise<DocumentListRow[]> {
   return db
     .select({
-      id: documents.id,
-      templateId: documents.templateId,
+      uuid: documents.uuid,
+      templateSlug: templates.slug,
       templateName: templates.name,
       title: documents.title,
-      type: templates.docTypeCode,
+      type: docTypes.code,
       thumbnailPath: templatePreviews.imagePath,
       createdAt: documents.createdAt,
       updatedAt: documents.updatedAt,
     })
     .from(documents)
     .innerJoin(templates, eq(templates.id, documents.templateId))
+    .innerJoin(docTypes, eq(docTypes.id, templates.docTypeId))
     .leftJoin(
       templatePreviews,
       and(eq(templatePreviews.templateId, templates.id), eq(templatePreviews.position, 1)),
@@ -75,16 +77,16 @@ export async function findDocumentsOfUser(userId: string): Promise<DocumentListR
 
 export async function insertDocument(
   tx: DbTransaction,
-  document: { id: string; templateId: string; title: string; filePath: string },
+  document: { uuid: string; templateId: number; title: string; filePath: string },
 ) {
   await tx.insert(documents).values(document);
 }
 
-export async function updateDocumentTitle(id: string, title: string) {
-  await db.update(documents).set({ title }).where(eq(documents.id, id));
+export async function updateDocumentTitle(uuid: string, title: string) {
+  await db.update(documents).set({ title }).where(eq(documents.uuid, uuid));
 }
 
 // Ghi nhận tài liệu vừa được lưu: cập nhật updated_at theo giờ của MySQL
-export async function markDocumentUpdated(tx: DbTransaction, id: string) {
-  await tx.update(documents).set({ updatedAt: sql`now()` }).where(eq(documents.id, id));
+export async function markDocumentUpdated(tx: DbTransaction, uuid: string) {
+  await tx.update(documents).set({ updatedAt: sql`now()` }).where(eq(documents.uuid, uuid));
 }

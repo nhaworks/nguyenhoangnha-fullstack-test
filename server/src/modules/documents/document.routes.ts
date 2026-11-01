@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { errorResponse, fileResponse, okResponse } from '../../openapi.js';
 import { MIME_TYPES } from '../../storage.js';
 import * as documentController from './document.controller.js';
 
@@ -37,6 +38,8 @@ const renameDocumentBody = {
   properties: { title: titleSchema },
 };
 
+const documentData = { $ref: 'Document#' };
+
 export async function documentRoutes(app: FastifyInstance) {
   // Nhận body là file .docx nguyên bản (Buffer) khi Content-Type là DOCX
   app.addContentTypeParser(MIME_TYPES.docx, { parseAs: 'buffer', bodyLimit: SAVE_BODY_LIMIT }, (request, body, done) => {
@@ -45,25 +48,87 @@ export async function documentRoutes(app: FastifyInstance) {
 
   app.post(
     '/api/templates/:id/documents',
-    { schema: { params: templateIdParams, body: createDocumentBody } },
+    {
+      schema: {
+        tags: ['Documents'],
+        params: templateIdParams,
+        body: createDocumentBody,
+        response: {
+          201: okResponse(documentData),
+          400: errorResponse,
+          404: errorResponse,
+        },
+      },
+    },
     documentController.createDocument,
   );
 
-  app.get('/api/documents', documentController.listDocuments);
+  app.get(
+    '/api/documents',
+    {
+      schema: {
+        tags: ['Documents'],
+        response: { 200: okResponse({ type: 'array', items: { $ref: 'DocumentListItem#' } }) },
+      },
+    },
+    documentController.listDocuments,
+  );
 
-  app.get('/api/documents/:id', { schema: { params: documentIdParams } }, documentController.getDocument);
+  app.get(
+    '/api/documents/:id',
+    {
+      schema: {
+        tags: ['Documents'],
+        params: documentIdParams,
+        response: { 200: okResponse(documentData), 400: errorResponse, 404: errorResponse },
+      },
+    },
+    documentController.getDocument,
+  );
 
   app.put(
     '/api/documents/:id',
-    { bodyLimit: SAVE_BODY_LIMIT, schema: { params: documentIdParams } },
+    {
+      bodyLimit: SAVE_BODY_LIMIT,
+      schema: {
+        tags: ['Documents'],
+        params: documentIdParams,
+        consumes: [MIME_TYPES.docx],
+        response: {
+          200: okResponse(documentData),
+          400: errorResponse,
+          404: errorResponse,
+          409: errorResponse,
+          413: errorResponse,
+          415: errorResponse,
+        },
+      },
+    },
     documentController.saveDocument,
   );
 
   app.patch(
     '/api/documents/:id',
-    { schema: { params: documentIdParams, body: renameDocumentBody } },
+    {
+      schema: {
+        tags: ['Documents'],
+        params: documentIdParams,
+        body: renameDocumentBody,
+        response: { 200: okResponse(documentData), 400: errorResponse, 404: errorResponse },
+      },
+    },
     documentController.renameDocument,
   );
 
-  app.get('/api/documents/:id/download', { schema: { params: documentIdParams } }, documentController.downloadDocument);
+  app.get(
+    '/api/documents/:id/download',
+    {
+      schema: {
+        tags: ['Documents'],
+        params: documentIdParams,
+        response: { 200: fileResponse([MIME_TYPES.docx, MIME_TYPES.pptx]), 400: errorResponse, 404: errorResponse },
+      },
+    },
+    documentController.downloadDocument,
+  );
 }

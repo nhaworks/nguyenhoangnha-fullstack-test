@@ -2,13 +2,15 @@ import { and, asc, eq, like, or, type SQL } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { categories, docTypes, templatePreviews, templates } from '../../db/schema.js';
 
-// Một mẫu đọc từ DB, đã kèm tên danh mục, đuôi file và ảnh thumbnail
+// Một mẫu đọc từ DB, đã kèm loại, danh mục, đuôi file và ảnh thumbnail.
+// id: số tự tăng, chỉ dùng trong DB; slug / categorySlug: khoá công khai trả cho client.
 export type TemplateRow = {
-  id: string;
+  id: number;
+  slug: string;
   type: string;
   name: string;
   description: string;
-  categoryId: string;
+  categorySlug: string;
   categoryName: string;
   thumbnailPath: string | null;
   filePath: string;
@@ -29,10 +31,11 @@ function selectTemplates() {
   return db
     .select({
       id: templates.id,
-      type: templates.docTypeCode,
+      slug: templates.slug,
+      type: docTypes.code,
       name: templates.name,
       description: templates.description,
-      categoryId: categories.id,
+      categorySlug: categories.slug,
       categoryName: categories.name,
       thumbnailPath: templatePreviews.imagePath,
       filePath: templates.filePath,
@@ -42,7 +45,7 @@ function selectTemplates() {
     })
     .from(templates)
     .innerJoin(categories, eq(categories.id, templates.categoryId))
-    .innerJoin(docTypes, eq(docTypes.code, templates.docTypeCode))
+    .innerJoin(docTypes, eq(docTypes.id, templates.docTypeId))
     .leftJoin(
       templatePreviews,
       and(eq(templatePreviews.templateId, templates.id), eq(templatePreviews.position, 1)),
@@ -58,10 +61,10 @@ export async function findTemplates(filter: TemplateFilter): Promise<TemplateRow
   const conditions: (SQL | undefined)[] = [];
 
   if (filter.type) {
-    conditions.push(eq(templates.docTypeCode, filter.type));
+    conditions.push(eq(docTypes.code, filter.type));
   }
   if (filter.category) {
-    conditions.push(eq(templates.categoryId, filter.category));
+    conditions.push(eq(categories.slug, filter.category));
   }
   if (filter.q) {
     // Database dùng collation utf8mb4_0900_ai_ci nên LIKE không phân biệt hoa thường và dấu:
@@ -75,12 +78,12 @@ export async function findTemplates(filter: TemplateFilter): Promise<TemplateRow
     .orderBy(asc(templates.name));
 }
 
-export async function findTemplateById(id: string): Promise<TemplateRow | undefined> {
-  const rows = await selectTemplates().where(eq(templates.id, id));
+export async function findTemplateBySlug(slug: string): Promise<TemplateRow | undefined> {
+  const rows = await selectTemplates().where(eq(templates.slug, slug));
   return rows[0];
 }
 
-export async function findPreviews(templateId: string) {
+export async function findPreviews(templateId: number) {
   return db
     .select({ position: templatePreviews.position, imagePath: templatePreviews.imagePath })
     .from(templatePreviews)

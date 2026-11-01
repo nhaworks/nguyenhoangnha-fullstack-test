@@ -15,8 +15,8 @@ import type { DocumentRow } from './document.repository.js';
 const EDITABLE_TYPES = ['docx'];
 
 type DocumentFields = {
-  id: string;
-  templateId: string;
+  uuid: string;
+  templateSlug: string;
   templateName: string;
   type: string;
   title: string;
@@ -24,16 +24,17 @@ type DocumentFields = {
   updatedAt: Date;
 };
 
-// Dữ liệu tài liệu trả cho client (không trả đường dẫn file trên server)
+// Dữ liệu tài liệu trả cho client (không trả đường dẫn file trên server).
+// `id` trả cho client là uuid (khó đoán), `templateId` là slug của mẫu; id số tự tăng chỉ dùng trong DB.
 function toDocumentResponse(row: DocumentFields) {
   return {
-    id: row.id,
-    templateId: row.templateId,
+    id: row.uuid,
+    templateId: row.templateSlug,
     templateName: row.templateName,
     type: row.type,
     title: row.title,
     editable: EDITABLE_TYPES.includes(row.type),
-    downloadUrl: `/api/documents/${row.id}/download`,
+    downloadUrl: `/api/documents/${row.uuid}/download`,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt, // lần lưu gần nhất; bằng createdAt nếu chưa sửa
   };
@@ -46,8 +47,8 @@ function isDocxFile(content: Buffer) {
   return content.subarray(0, 4).equals(ZIP_SIGNATURE) && content.includes('word/document.xml');
 }
 
-async function findDocumentOrThrow(id: string) {
-  const document = await documentRepository.findDocumentById(id);
+async function findDocumentOrThrow(uuid: string) {
+  const document = await documentRepository.findDocumentByUuid(uuid);
   if (!document) {
     throw new AppError(404, 'Không tìm thấy tài liệu');
   }
@@ -64,8 +65,8 @@ export async function listDocuments() {
   }));
 }
 
-export async function getDocument(id: string) {
-  const document = await findDocumentOrThrow(id);
+export async function getDocument(uuid: string) {
+  const document = await findDocumentOrThrow(uuid);
   return toDocumentResponse(document);
 }
 
@@ -76,19 +77,19 @@ export async function getDocument(id: string) {
  * Hai bước nằm chung một transaction: bước nào lỗi thì DB rollback và xoá file đã copy.
  * File mẫu gốc chỉ được đọc, không bị sửa.
  */
-export async function createDocument(templateId: string, title?: string) {
-  const template = await findTemplateOrThrow(templateId);
+export async function createDocument(templateSlug: string, title?: string) {
+  const template = await findTemplateOrThrow(templateSlug);
 
-  const documentId = randomUUID();
-  const filePath = `documents/${DEFAULT_USER_ID}/${documentId}.${template.extension}`;
+  const documentUuid = randomUUID();
+  const filePath = `documents/${DEFAULT_USER_ID}/${documentUuid}.${template.extension}`;
   const sourceFile = getStoragePath(template.filePath, 'templates');
   const targetFile = getStoragePath(filePath, 'documents');
 
   try {
     await db.transaction(async (tx) => {
       await documentRepository.insertDocument(tx, {
-        id: documentId,
-        templateId,
+        uuid: documentUuid,
+        templateId: template.id,
         title: title?.trim() || template.name,
         filePath,
       });
@@ -106,7 +107,7 @@ export async function createDocument(templateId: string, title?: string) {
     throw error;
   }
 
-  return getDocument(documentId);
+  return getDocument(documentUuid);
 }
 
 /**
@@ -114,8 +115,8 @@ export async function createDocument(templateId: string, title?: string) {
  *   - Ghi đè file của tài liệu (file mẫu gốc không bị đụng tới)
  *   - Cập nhật updated_at để biết lần lưu gần nhất
  */
-export async function saveDocument(id: string, content: Buffer) {
-  const document = await findDocumentOrThrow(id);
+export async function saveDocument(uuid: string, content: Buffer) {
+  const document = await findDocumentOrThrow(uuid);
 
   if (!EDITABLE_TYPES.includes(document.type)) {
     throw new AppError(409, 'Loại tài liệu này chưa hỗ trợ chỉnh sửa');
@@ -131,7 +132,7 @@ export async function saveDocument(id: string, content: Buffer) {
 
   try {
     await db.transaction(async (tx) => {
-      await documentRepository.markDocumentUpdated(tx, id);
+      await documentRepository.markDocumentUpdated(tx, uuid);
       await writeFile(tempFile, content);
       await rename(tempFile, targetFile);
     });
@@ -140,19 +141,19 @@ export async function saveDocument(id: string, content: Buffer) {
     await rm(tempFile, { force: true });
   }
 
-  return getDocument(id);
+  return getDocument(uuid);
 }
 
 // Đổi tiêu đề tài liệu (chỉ metadata, file không đổi). Tên file khi tải xuống lấy theo tiêu đề mới.
-export async function renameDocument(id: string, title: string) {
-  await findDocumentOrThrow(id);
-  await documentRepository.updateDocumentTitle(id, title.trim());
-  return getDocument(id);
+export async function renameDocument(uuid: string, title: string) {
+  await findDocumentOrThrow(uuid);
+  await documentRepository.updateDocumentTitle(uuid, title.trim());
+  return getDocument(uuid);
 }
 
 // Trả về file để tải xuống, tên file = tiêu đề tài liệu
-export async function getDocumentDownload(id: string) {
-  const document = await findDocumentOrThrow(id);
+export async function getDocumentDownload(uuid: string) {
+  const document = await findDocumentOrThrow(uuid);
   const file = await openStoredFile(document.filePath, 'documents');
   const fileName = `${document.title}.${document.extension}`;
   return { file, fileName };
