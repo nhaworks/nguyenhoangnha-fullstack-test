@@ -16,96 +16,84 @@
       "type": "docx",
       "category": "hanh-chinh",
       "name": "Hợp đồng lao động",
-      "description": "Hợp đồng lao động giữa doanh nghiệp và người lao động: thông tin hai bên, công việc, tiền lương, nghĩa vụ.",
-      "source": "docx/hop-dong-lao-dong.docx"
+      "description": "Hợp đồng lao động giữa doanh nghiệp và người lao động: thông tin hai bên, công việc, tiền lương, nghĩa vụ."
     },
     {
       "id": "cv-thiet-ke-noi-that",
       "type": "docx",
       "category": "nhan-su",
       "name": "CV nhà thiết kế nội thất",
-      "description": "CV hai cột có ảnh đại diện: hồ sơ, học vấn, kinh nghiệm, kỹ năng (tiếng Anh).",
-      "source": "docx/p1.docx"
+      "description": "CV có ảnh đại diện: mục tiêu nghề nghiệp, kinh nghiệm làm việc, học vấn, bảng kỹ năng và chứng chỉ."
     },
     {
       "id": "thoi-khoa-bieu-hoc-ky",
       "type": "docx",
       "category": "giao-duc",
       "name": "Thời khoá biểu học kỳ",
-      "description": "Lịch học đại học theo tiết và ngày trong tuần, ghi phòng học và tuần học (tiếng Anh).",
-      "source": "docx/p2.docx"
+      "description": "Lịch học đại học theo ca và ngày trong tuần kèm phòng học, danh sách học phần, số tín chỉ, giảng viên."
     },
     {
       "id": "thoi-khoa-bieu-tuan",
       "type": "docx",
       "category": "giao-duc",
       "name": "Thời khoá biểu theo tuần",
-      "description": "Thời khoá biểu phổ thông từ thứ Hai đến thứ Sáu, chia buổi sáng và chiều (tiếng Anh).",
-      "source": "docx/p3.docx"
+      "description": "Thời khoá biểu lớp THCS từ thứ Hai đến thứ Sáu, chia buổi sáng và chiều, kèm giờ vào lớp từng tiết."
     },
     {
       "id": "bao-cao-tong-ket-kinh-doanh",
       "type": "docx",
       "category": "bao-cao",
       "name": "Báo cáo tổng kết kinh doanh cuối năm",
-      "description": "Báo cáo của trưởng phòng kinh doanh: kết quả, chi phí, đội ngũ và kế hoạch năm tới (tiếng Anh).",
-      "source": "docx/p4.docx"
+      "description": "Báo cáo của trưởng phòng kinh doanh: kết quả so với kế hoạch, chi phí, đội ngũ, đánh giá và kế hoạch năm tới."
     },
     {
       "id": "bao-cao-kinh-doanh-quy",
       "type": "pptx",
       "category": "bao-cao",
       "name": "Báo cáo kinh doanh quý",
-      "description": "Bộ slide báo cáo kết quả quý: chỉ số chính, biểu đồ doanh thu, bảng chi phí, kế hoạch quý tới.",
-      "source": "pptx/bao-cao-kinh-doanh-quy.pptx"
+      "description": "Bộ slide báo cáo kết quả quý: chỉ số chính, biểu đồ doanh thu, bảng chi phí, kế hoạch quý tới."
     },
     {
       "id": "bai-giang",
       "type": "pptx",
       "category": "giao-duc",
       "name": "Bài giảng lớp học",
-      "description": "Bộ slide bài giảng: mục tiêu, nội dung chính, khái niệm cần nhớ, thảo luận và bài tập.",
-      "source": "pptx/bai-giang.pptx"
+      "description": "Bộ slide bài giảng: mục tiêu, nội dung chính, khái niệm cần nhớ, thảo luận và bài tập."
     },
     {
       "id": "gioi-thieu-du-an",
       "type": "pptx",
       "category": "kinh-doanh",
       "name": "Giới thiệu dự án",
-      "description": "Bộ slide giới thiệu dự án / gọi vốn: vấn đề, giải pháp, lộ trình, đội ngũ.",
-      "source": "pptx/gioi-thieu-du-an.pptx"
+      "description": "Bộ slide giới thiệu dự án / gọi vốn: vấn đề, giải pháp, lộ trình, đội ngũ."
     },
     {
       "id": "dao-tao-nhan-vien-moi",
       "type": "pptx",
       "category": "nhan-su",
       "name": "Đào tạo hội nhập nhân viên mới",
-      "description": "Bộ slide hội nhập nhân viên mới: giới thiệu công ty, giá trị cốt lõi, lịch tuần đầu, lộ trình 30-60-90 ngày.",
-      "source": "pptx/dao-tao-nhan-vien-moi.pptx"
+      "description": "Bộ slide hội nhập nhân viên mới: giới thiệu công ty, giá trị cốt lõi, lịch tuần đầu, lộ trình 30-60-90 ngày."
     },
     {
       "id": "ke-hoach-marketing",
       "type": "pptx",
       "category": "kinh-doanh",
       "name": "Kế hoạch marketing",
-      "description": "Bộ slide kế hoạch marketing: mục tiêu, chân dung khách hàng, ngân sách theo kênh, lịch triển khai.",
-      "source": "pptx/ke-hoach-marketing.pptx"
+      "description": "Bộ slide kế hoạch marketing: mục tiêu, chân dung khách hàng, ngân sách theo kênh, lịch triển khai."
     },
     {
       "id": "tong-ket-nam-hoc",
       "type": "pptx",
       "category": "giao-duc",
       "name": "Tổng kết năm học",
-      "description": "Bộ slide tổng kết năm học: kết quả học tập, thành tích nổi bật, khen thưởng, phương hướng năm học mới.",
-      "source": "pptx/tong-ket-nam-hoc.pptx"
+      "description": "Bộ slide tổng kết năm học: kết quả học tập, thành tích nổi bật, khen thưởng, phương hướng năm học mới."
     },
     {
       "id": "bao-cao-tien-do-tuan",
       "type": "pptx",
       "category": "bao-cao",
       "name": "Báo cáo tiến độ tuần",
-      "description": "Bộ slide báo cáo tiến độ hằng tuần: tổng quan, công việc chính, vướng mắc, kế hoạch tuần tới.",
-      "source": "pptx/bao-cao-tien-do-tuan.pptx"
+      "description": "Bộ slide báo cáo tiến độ hằng tuần: tổng quan, công việc chính, vướng mắc, kế hoạch tuần tới."
     }
   ]
 }
