@@ -34,7 +34,7 @@ export function DocumentGrid({ status, documents, emptyTitle, error, onRetry, on
         <StatusView
           type="empty"
           title={emptyTitle}
-          description="Vào Mẫu tài liệu hoặc Mẫu trình chiếu, chọn một mẫu và bấm Tạo mẫu."
+          description="Vào Mẫu tài liệu hoặc Mẫu trình chiếu, chọn một mẫu và bấm Dùng mẫu."
         />
       );
 

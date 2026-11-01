@@ -38,7 +38,7 @@ const renameDocumentBody = {
 const documentData = { $ref: 'Document#' };
 
 export async function documentRoutes(app: FastifyInstance) {
-  app.addContentTypeParser(MIME_TYPES.docx, { parseAs: 'buffer', bodyLimit: SAVE_BODY_LIMIT }, (request, body, done) => {
+  app.addContentTypeParser(MIME_TYPES.docx, { parseAs: 'buffer', bodyLimit: SAVE_BODY_LIMIT }, (_request, body, done) => {
     done(null, body);
   });
 

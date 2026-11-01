@@ -1,8 +1,10 @@
+import { rm } from 'node:fs/promises';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { drizzle } from 'drizzle-orm/mysql2';
 import { migrate } from 'drizzle-orm/mysql2/migrator';
 import mysql from 'mysql2/promise';
-import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } from '../config.js';
+import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, STORAGE_ROOT } from '../config.js';
 
 export async function migrateDatabase({ dropExisting = false } = {}) {
   if (!/^\w+$/.test(DB_NAME)) {
@@ -37,5 +39,8 @@ const isRunDirectly = process.argv[1] === fileURLToPath(import.meta.url);
 if (isRunDirectly) {
   const dropExisting = process.argv.includes('--truncate');
   await migrateDatabase({ dropExisting });
-  console.log(dropExisting ? `Database "${DB_NAME}" đã được xoá và tạo lại` : `Database "${DB_NAME}" đã được cập nhật`);
+  if (dropExisting) {
+    await rm(path.join(STORAGE_ROOT, 'documents'), { recursive: true, force: true });
+  }
+  console.log(dropExisting ? `Database "${DB_NAME}" và tài liệu đã tạo đã được xoá, tạo lại database` : `Database "${DB_NAME}" đã được cập nhật`);
 }

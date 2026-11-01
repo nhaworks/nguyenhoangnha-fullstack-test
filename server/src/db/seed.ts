@@ -56,7 +56,7 @@ export async function seed() {
 
     const filePath = `templates/${item.type}/${item.id}.${docType.extension}`;
     if (!existsSync(getStoragePath(filePath, 'templates'))) {
-      throw new Error(`Thiếu file storage/${filePath}, hãy chạy: npm run samples`);
+      throw new Error(`manifest.json: mẫu "${item.id}" thiếu file storage/${filePath}`);
     }
 
     templateRows.push({

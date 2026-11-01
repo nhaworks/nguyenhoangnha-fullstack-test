@@ -63,5 +63,5 @@ export const documents = mysqlTable(
     filePath: varchar('file_path', { length: 500 }).notNull().unique(),
     ...timestamps,
   },
-  (t) => [check('chk_document_title', sql`char_length(\`title\`) >= 1`)],
+  () => [check('chk_document_title', sql`char_length(\`title\`) >= 1`)],
 );

@@ -8,7 +8,6 @@ import { AppError } from '../../errors.js';
 import { getStoragePath, openStoredFile } from '../../storage.js';
 import { findTemplateOrThrow } from '../templates/template.service.js';
 import * as documentRepository from './document.repository.js';
-import type { DocumentRow } from './document.repository.js';
 
 const EDITABLE_TYPES = ['docx'];
 

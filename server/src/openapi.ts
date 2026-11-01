@@ -114,7 +114,7 @@ export function registerOpenApi(app: FastifyInstance) {
         { name: 'Files' },
       ],
     },
-    refResolver: { buildLocalReference: (json, baseUri, fragment, index) => String(json.$id || `def-${index}`) },
+    refResolver: { buildLocalReference: (json, _baseUri, _fragment, index) => String(json.$id || `def-${index}`) },
     transform: ({ schema, url }) => {
       if (!schema || !schema.consumes || schema.body) {
         return { schema, url };

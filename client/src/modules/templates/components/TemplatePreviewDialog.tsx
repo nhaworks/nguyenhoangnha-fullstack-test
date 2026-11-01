@@ -1,7 +1,7 @@
 import type { TemplateSummary } from '../api/template.types';
 import { useDialog } from '../../../shared/hooks/useDialog';
 import { useTemplatePreview } from '../hooks/useTemplatePreview';
-import { CloseIcon, PlusIcon, SpinnerIcon } from '../../../shared/components/icons';
+import { CloseIcon, SpinnerIcon } from '../../../shared/components/icons';
 import { ImageCarousel } from '../../../shared/components/ImageCarousel';
 import { StatusView } from '../../../shared/components/StatusView';
 
@@ -82,7 +82,7 @@ export function TemplatePreviewDialog({ templateId, onClose, onCreate }: Templat
               <InfoRow label="Cập nhật" value={template.updatedAtText} />
             </dl>
 
-            <div className="mt-auto space-y-2">
+            <div className="mt-auto">
               <button
                 type="button"
                 onClick={() => onCreate(template)}
@@ -90,7 +90,6 @@ export function TemplatePreviewDialog({ templateId, onClose, onCreate }: Templat
               >
                 Dùng mẫu
               </button>
-             
             </div>
           </aside>
         </div>

@@ -14,7 +14,7 @@ export async function createDocument(request: CreateDocumentRequest, reply: Fast
   return sendSuccess(reply, document, 'Đã tạo tài liệu', 201);
 }
 
-export async function listDocuments(request: FastifyRequest, reply: FastifyReply) {
+export async function listDocuments(_request: FastifyRequest, reply: FastifyReply) {
   const documents = await documentService.listDocuments();
   return sendSuccess(reply, documents);
 }

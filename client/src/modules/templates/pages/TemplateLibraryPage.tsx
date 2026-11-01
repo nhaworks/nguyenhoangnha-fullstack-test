@@ -1,7 +1,6 @@
 import { useCreateDocument } from '../../documents/hooks/useCreateDocument';
 import { useTemplateLibrary } from '../hooks/useTemplateLibrary';
 import { CategoryChips } from '../components/CategoryChips';
-import { GridIcon } from '../../../shared/components/icons';
 import { SearchBox } from '../../../shared/components/SearchBox';
 import { TemplateGrid } from '../components/TemplateGrid';
 import { TemplatePreviewDialog } from '../components/TemplatePreviewDialog';
@@ -23,7 +22,7 @@ export function TemplateLibraryPage({ docType }: TemplateLibraryPageProps) {
         </h1>
       </header>
 
-      <div className="space-y-4 rounded-2xl   bg-white p-4">
+      <div className="space-y-4 rounded-2xl bg-white p-4">
         <SearchBox
           value={library.filters.keyword}
           placeholder={library.docType.searchPlaceholder}

@@ -3,7 +3,6 @@ export type DocTypeOption = {
   label: string;
   pageUnit: string;
   libraryTitle: string;
-  description: string;
   searchPlaceholder: string;
 };
 
@@ -12,8 +11,7 @@ export const DOC_TYPES: DocTypeOption[] = [
     code: 'docx',
     label: 'Văn bản',
     pageUnit: 'trang',
-    libraryTitle: 'Mẫu tài liệu ',
-    description: '',
+    libraryTitle: 'Mẫu tài liệu',
     searchPlaceholder: 'Tìm mẫu docx',
   },
   {
@@ -21,7 +19,6 @@ export const DOC_TYPES: DocTypeOption[] = [
     label: 'Trình chiếu',
     pageUnit: 'slide',
     libraryTitle: 'Kho mẫu trình chiếu',
-    description: '',
     searchPlaceholder: 'Tìm mẫu pptx',
   },
 ];
