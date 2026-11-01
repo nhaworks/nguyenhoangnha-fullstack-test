@@ -3,10 +3,9 @@ import { errorResponse, fileResponse, okResponse } from '../../openapi.js';
 import { MIME_TYPES } from '../../storage.js';
 import * as documentController from './document.controller.js';
 
-// Giới hạn file .docx gửi lên khi lưu: 20 MB (tài liệu có thể chứa ảnh)
 const SAVE_BODY_LIMIT = 20 * 1024 * 1024;
 
-const titleSchema = { type: 'string', minLength: 1, maxLength: 200, pattern: '\\S' }; // \S: không được toàn khoảng trắng
+const titleSchema = { type: 'string', minLength: 1, maxLength: 200, pattern: '\\S' };
 
 const templateIdParams = {
   type: 'object',
@@ -24,8 +23,6 @@ const documentIdParams = {
   },
 };
 
-// Body khi tạo tài liệu là tuỳ chọn, nên không khai `type: 'object'`
-// (khai thì request không có body sẽ bị báo lỗi 400)
 const createDocumentBody = {
   additionalProperties: false,
   properties: { title: titleSchema },
@@ -41,7 +38,6 @@ const renameDocumentBody = {
 const documentData = { $ref: 'Document#' };
 
 export async function documentRoutes(app: FastifyInstance) {
-  // Nhận body là file .docx nguyên bản (Buffer) khi Content-Type là DOCX
   app.addContentTypeParser(MIME_TYPES.docx, { parseAs: 'buffer', bodyLimit: SAVE_BODY_LIMIT }, (request, body, done) => {
     done(null, body);
   });

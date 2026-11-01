@@ -18,7 +18,6 @@ after(async () => {
 
 const CONTRACT_TEMPLATE = 'templates/docx/hop-dong-lao-dong.docx';
 
-// Mã SHA-256 của một file trong storage tạm, dùng để kiểm tra file có bị sửa không
 async function getFileHash(relativePath: string) {
   const content = await readFile(path.join(testApp.storageRoot, relativePath));
   return createHash('sha256').update(content).digest('hex');
@@ -30,7 +29,6 @@ function createDocument(templateId: string, body?: object) {
 
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
-// Gửi file lên như editor ở trình duyệt: body là nội dung file, Content-Type DOCX
 function saveDocument(documentId: string, content: Buffer | string, contentType = DOCX_MIME) {
   return testApp.app.inject({
     method: 'PUT',
@@ -44,19 +42,16 @@ function getUrl(url: string) {
   return testApp.app.inject({ method: 'GET', url });
 }
 
-// Tạo tài liệu và trả về phần data
 async function createDocumentData(templateId: string) {
   const res = await createDocument(templateId);
   return res.json().data;
 }
 
-// Đọc nội dung word/document.xml bên trong file .docx
 async function readDocumentXml(docxContent: Buffer) {
   const zip = await JSZip.loadAsync(docxContent);
   return zip.file('word/document.xml')!.async('string');
 }
 
-// Giả lập một lần sửa trong editor: lấy file mẫu hợp đồng, đổi dòng tiêu đề
 async function makeEditedContract(newHeading: string) {
   const zip = await JSZip.loadAsync(await readFile(path.join(testApp.storageRoot, CONTRACT_TEMPLATE)));
   const xml = await zip.file('word/document.xml')!.async('string');
@@ -86,7 +81,6 @@ describe('POST /api/templates/:id/documents', () => {
     assert.equal(document.editable, true);
     assert.equal(document.updatedAt, document.createdAt);
 
-    // Bản sao giống hệt mẫu, mẫu gốc không đổi
     assert.equal(await getFileHash(`documents/demo/${document.id}.docx`), hashBefore);
     assert.equal(await getFileHash(CONTRACT_TEMPLATE), hashBefore);
   });
@@ -153,7 +147,7 @@ describe('PUT /api/documents/:id', () => {
     const document = await createDocumentData('hop-dong-lao-dong');
     const editedFile = await makeEditedContract('HỢP ĐỒNG ĐÃ CHỈNH SỬA');
 
-    await wait(1100); // updated_at lưu tới giây, chờ để thấy thời gian thay đổi
+    await wait(1100);
     const res = await saveDocument(document.id, editedFile);
     assert.equal(res.statusCode, 200);
     assert.equal(res.json().code, 200);

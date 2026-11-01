@@ -2,9 +2,6 @@ import { and, desc, eq, like, sql } from 'drizzle-orm';
 import { db, type DbTransaction } from '../../db/index.js';
 import { docTypes, documents, templatePreviews, templates } from '../../db/schema.js';
 
-// Một tài liệu đọc từ DB. Bảng documents không có cột loại,
-// nên type, extension và tên mẫu lấy qua mẫu gốc (documents.template_id → templates → doc_types).
-// uuid / templateSlug là khoá công khai trả cho client; id số tự tăng chỉ dùng trong DB.
 export type DocumentRow = {
   uuid: string;
   templateSlug: string;
@@ -38,7 +35,6 @@ export async function findDocumentByUuid(uuid: string): Promise<DocumentRow | un
   return rows[0];
 }
 
-// Một dòng trong danh sách tài liệu, kèm ảnh thumbnail của mẫu gốc
 export type DocumentListRow = {
   uuid: string;
   templateSlug: string;
@@ -50,8 +46,6 @@ export type DocumentListRow = {
   updatedAt: Date;
 };
 
-// Tài liệu của một user: file của user nằm trong documents/<userId>/.
-// Chưa phân trang; khi số tài liệu lớn thì thêm limit / offset.
 export async function findDocumentsOfUser(userId: string): Promise<DocumentListRow[]> {
   return db
     .select({
@@ -86,7 +80,6 @@ export async function updateDocumentTitle(uuid: string, title: string) {
   await db.update(documents).set({ title }).where(eq(documents.uuid, uuid));
 }
 
-// Ghi nhận tài liệu vừa được lưu: cập nhật updated_at theo giờ của MySQL
 export async function markDocumentUpdated(tx: DbTransaction, uuid: string) {
   await tx.update(documents).set({ updatedAt: sql`now()` }).where(eq(documents.uuid, uuid));
 }

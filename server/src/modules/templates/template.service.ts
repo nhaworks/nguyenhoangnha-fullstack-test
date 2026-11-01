@@ -3,13 +3,10 @@ import { openStoredFile } from '../../storage.js';
 import * as templateRepository from './template.repository.js';
 import type { TemplateFilter, TemplateRow } from './template.repository.js';
 
-// DB lưu đường dẫn ảnh dạng "previews/<slug>/1.png", client cần URL "/files/previews/<slug>/1.png"
 function toImageUrl(imagePath: string) {
   return '/files/' + imagePath;
 }
 
-// Dữ liệu mẫu trả cho client (không trả đường dẫn file trên server).
-// `id` trả cho client là slug; id số tự tăng chỉ dùng trong DB.
 function toTemplateResponse(row: TemplateRow) {
   return {
     id: row.slug,
@@ -24,12 +21,11 @@ function toTemplateResponse(row: TemplateRow) {
 export async function getTemplates(filter: TemplateFilter) {
   const rows = await templateRepository.findTemplates({
     ...filter,
-    q: filter.q?.trim(), // bỏ khoảng trắng thừa, chuỗi rỗng coi như không tìm
+    q: filter.q?.trim(),
   });
   return rows.map(toTemplateResponse);
 }
 
-// Lấy mẫu theo slug (id trên URL), không có thì báo 404. Module documents cũng dùng hàm này.
 export async function findTemplateOrThrow(slug: string) {
   const template = await templateRepository.findTemplateBySlug(slug);
   if (!template) {
@@ -59,7 +55,6 @@ export async function getTemplateFile(slug: string) {
   return openStoredFile(template.filePath, 'templates');
 }
 
-// imagePath lấy từ URL (vd. "hop-dong-lao-dong/1.png"), chỉ được đọc trong thư mục previews/
 export async function getPreviewImage(imagePath: string) {
   return openStoredFile('previews/' + imagePath, 'previews');
 }

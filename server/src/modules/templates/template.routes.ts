@@ -3,7 +3,6 @@ import { errorResponse, fileResponse, okResponse } from '../../openapi.js';
 import { MIME_TYPES } from '../../storage.js';
 import * as templateController from './template.controller.js';
 
-// id của mẫu là slug: chữ thường, số và dấu gạch ngang (vd. "hop-dong-lao-dong")
 const templateIdParams = {
   type: 'object',
   required: ['id'],
@@ -20,7 +19,6 @@ const listTemplatesQuery = {
     category: { type: 'string', pattern: '^[a-z0-9-]+$', maxLength: 100 },
   },
 };
-
 
 export async function templateRoutes(app: FastifyInstance) {
   app.get(
@@ -62,7 +60,6 @@ export async function templateRoutes(app: FastifyInstance) {
     templateController.getTemplateFile,
   );
 
-  // Ảnh preview / thumbnail: /files/previews/<templateId>/<số thứ tự>.png
   app.get(
     '/files/previews/*',
     {

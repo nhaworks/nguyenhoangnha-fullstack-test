@@ -1,155 +1,162 @@
-# nguyenhoangnha-fullstack-test
+# Thư viện mẫu tài liệu
 
-Dự án chia 2 mã nguồn backend và frontend
+Hai sản phẩm dùng chung một backend và một frontend:
 
-| Thư mục   | Công nghệ                                   | Port |
-|-----------|---------------------------------------------|---------------|
-| `server/` | Fastify + TypeScript + MySQL (Drizzle ORM)  | 3000          |
-| `client/` | React + Vite + TypeScript                   | 5173          |
+- **Bài 1 – Văn bản**: thư viện mẫu DOCX → tìm, lọc, xem trước → tạo tài liệu → sửa trong editor tích hợp → lưu / tải .docx.
+- **Bài 2 – Trình chiếu**: thư viện bộ mẫu PPTX → tìm, lọc, xem từng slide → tạo bản sao độc lập → tải .pptx.
+
+Danh mục bàn giao: [BAN-GIAO.md](BAN-GIAO.md).
+
+## Công nghệ
+
+| Phần | Công nghệ |
+|---|---|
+| Backend (`server/`, cổng 3000) | Node.js 22, Fastify 5, TypeScript, Drizzle ORM, MySQL 8 |
+| Frontend (`client/`, cổng 5173) | React 19, Vite, TypeScript, Tailwind CSS 4, axios |
+| Editor DOCX | `@docx-editor.dev/react` (chạy trong trình duyệt, sửa thẳng file .docx) |
+| Kiểm thử | `node:test` + `app.inject()` |
 
 ## Kiến trúc
 
 ![Kiến trúc client và server](docs/architecture.png)
-### Kiến trúc backend
+
+Backend chia module theo nghiệp vụ (`templates`, `categories`, `documents`), mỗi module 4 tầng:
+
 ```
 Routes ──► Controller ──► Service ──► Repository ──► MySQL
+(URL + validate)  (HTTP)   (nghiệp vụ, file)  (truy vấn)
 ```
 
-| Tầng         | File                         | Việc của tầng                                          |
-|--------------|------------------------------|--------------------------------------------------------|
-| Routes       | `<feature>.routes.ts`         | Khai báo URL, valid data input               |
-| Controller   | `<feature>.controller.ts`     | Nhận request, gọi service, trả response / status code  |
-| Service      | `<feature>.service.ts`        | Xử lý nghiệp vụ     |
-| Repository   | `<feature>.repository.ts`     | Truy vấn DB                            |
-
-
-### Kiến trúc frontend
-
-React + Tailwind CSS, API axios.
+Frontend chia module `templates`, `documents`, mỗi tầng chỉ gọi tầng ngay dưới:
 
 ```
-pages/ + components/ ──thao tác──► hooks/ ──► application/ ──► api/ (axios) ──► Proxy
+pages / components ──► hooks ──► application ──► api ──► /api (Vite proxy)
+(hiển thị)            (state)   (logic thuần)   (axios)
 ```
-| Tầng trong module | Việc của tầng |
-|---|---|
-| `api/` | Gọi HTTP bằng axios (`shared/api/http.ts`), trả phần `data` trong `{ code, message, data }`; kiểu dữ liệu ở `*.types.ts` |
-| `application/` | Logic nghiệp vụ, TypeScript thuần (không React): bộ lọc ↔ URL, carousel, chuẩn bị nhãn hiển thị |
-| `hooks/` | State React: đang tải / lỗi / dữ liệu, debounce tìm kiếm, phím mũi tên; gọi `application/`, không gọi `api/` |
-| `components/`, `pages/` | Chỉ hiển thị (Tailwind) và gọi callback của hook; không gọi API, không chứa logic |
 
 ```
 nguyenhoangnha-fullstack-test/
 ├── server/
 │   ├── src/
-│   │   ├── index.ts
-│   │   ├── app.ts
-│   │   ├── config.ts
-│   │   ├── errors.ts
-│   │   ├── response.ts
-│   │   ├── openapi.ts
-│   │   ├── storage.ts
-│   │   ├── modules/
-│   │   └── db/
-│   │       ├── schema.ts
-│   │       ├── index.ts
-│   │       ├── migrate.ts
-│   │       └── seed.ts
-│   ├── source/
-│   ├── scripts/samples.py
-│   ├── storage/
-│   ├── test/
-│   ├── drizzle/
-│   ├── drizzle.config.ts
-│   └── package.json
-├── client/
-│   ├── src/
-│   │   ├── app/
 │   │   ├── modules/
 │   │   │   ├── templates/
+│   │   │   ├── categories/
 │   │   │   └── documents/
-│   │   ├── shared/
-│   │   ├── App.tsx
-│   │   └── index.css
-│   ├── .env.example
-│   └── vite.config.ts
+│   │   ├── db/
+│   │   ├── app.ts
+│   │   ├── config.ts
+│   │   ├── openapi.ts
+│   │   ├── response.ts
+│   │   └── storage.ts
+│   ├── drizzle/
+│   ├── storage/
+│   │   ├── templates/
+│   │   └── previews/
+│   └── test/
+├── client/
+│   └── src/
+│       ├── app/
+│       ├── modules/
+│       │   ├── templates/
+│       │   └── documents/
+│       └── shared/
 └── docs/
     ├── architecture.png
-    ├── database.md
-    ├── de-bai.md
     ├── erd.png
-    └── features.xlsx
+    ├── features.xlsx
+    ├── test-cases.csv
+    └── test-cases-result.csv
 ```
 
 ## Cài đặt và chạy
 
-Mở **2 terminal** tại thư mục gốc của dự án.
+Cần: **Node.js 22+**, **MySQL 8.0+** đang chạy ở `127.0.0.1:3306`, user `root` không mật khẩu (khác thì xem [Cấu hình](#cấu-hình)).
 
 **Terminal 1 – Backend**
 
 ```bash
 cd server
 npm install
-cp .env.example .env # rồi sửa thông tin MySQL trong .env nếu cần
-npm run db:migrate   # tạo database template_library nếu chưa có + tạo bảng
-npm run dev          # khi khởi động tự seed mẫu từ storage/templates/manifest.json
+npm run db:migrate   # tạo database template_library + bảng
+npm run dev          # http://localhost:3000, tự nạp bộ mẫu khi khởi động
 ```
+
 **Terminal 2 – Frontend**
 
 ```bash
 cd client
 npm install
-cp .env.example .env # đổi API_PROXY_TARGET nếu backend không chạy ở 127.0.0.1:3000
-npm run dev
+npm run dev          # mở http://localhost:5173
 ```
-## Cơ sở dữ liệu
+
+### Cấu hình
+
+Không cần file `.env` nếu dùng giá trị mặc định. Muốn đổi thì tạo `server/.env` (mẫu: `server/.env.example`):
+
+| Biến | Mặc định |
+|---|---|
+| `DB_HOST` · `DB_PORT` | `127.0.0.1` · `3306` |
+| `DB_USER` · `DB_PASSWORD` | `root` · (trống) |
+| `DB_NAME` · `TEST_DB_NAME` | `template_library` · `template_library_test` |
+| `PORT` | `3000` |
+| `STORAGE_ROOT` | `server/storage` |
+| `DEFAULT_USER_ID` | `demo` |
+
+Backend chạy địa chỉ khác thì đặt `API_PROXY_TARGET` trong `client/.env` (mặc định `http://127.0.0.1:3000`).
+
+## API và dữ liệu
+
+- Swagger UI: http://localhost:3000/api/docs (hoặc http://localhost:5173/api/docs) · OpenAPI JSON: `/api/docs/json`.
+- Response JSON luôn có dạng `{ "code": <HTTP status>, "message": "<câu tiếng Việt>", "data": ... }`; lỗi thì `data = null`. Mã lỗi: 400 dữ liệu sai, 404 không tìm thấy, 409 loại tài liệu chưa sửa được, 413 file quá 20 MB, 415 sai Content-Type, 500 lỗi máy chủ, 503 mất kết nối DB.
+- File (xem trước, tải xuống) trả nhị phân, không bọc JSON.
 
 ![Sơ đồ cơ sở dữ liệu](docs/erd.png)
 
-Sau đó chạy lại `npm run db:migrate`.
+## Lưu trữ và tạo bản sao
 
-## API
-
-Tài liệu API (Swagger UI): http://localhost:5173/api/docs (qua Vite proxy) hoặc http://localhost:3000/api/docs · OpenAPI JSON: `/api/docs/json`.
+- File nằm trong `server/storage/`; DB chỉ lưu đường dẫn tương đối, mọi đường dẫn được kiểm tra không ra ngoài thư mục cho phép.
+- `storage/templates/` (mẫu gốc) chỉ đọc. Tạo tài liệu = copy file mẫu sang `storage/documents/demo/<uuid>.<docx|pptx>` cùng transaction với bản ghi DB, lỗi thì xoá file dở. File mẫu gốc không bao giờ bị sửa.
+- Lưu DOCX: editor gửi nguyên file .docx, server kiểm tra định dạng, ghi file tạm rồi đổi tên.
+- Thêm mẫu mới: chép file vào `storage/templates/<docx|pptx>/`, ảnh trang / slide vào `storage/previews/<id>/1.png, 2.png…`, thêm một mục vào `storage/templates/manifest.json`, khởi động lại server. Không phải sửa giao diện.
 
 ## Kiểm thử
 
 ```bash
 cd server
-npm test
+npm test             # toàn bộ test (DB template_library_test, storage tạm)
+npm run test:cases   # 44 test case chức năng → docs/test-cases-result.csv
 ```
-## Biến môi trường (server)
 
-Khai trong `server/.env` (copy từ `server/.env.example`; `.env` không commit). Không có `.env` thì dùng giá trị mặc định. Biến đặt sẵn trong môi trường (vd. `DB_PASSWORD=x npm run dev`) được ưu tiên hơn `.env`.
+Bộ test case `docs/test-cases.csv`: Bài 1 – Văn bản (`VB-xxx`), Bài 2 – Trình chiếu (`TC-xxx`), có case biên và case lỗi. Kết quả chạy ghi thêm cột Actual result · Status · Duration · Executed at.
 
-| Biến | Mặc định | Ý nghĩa |
-|---|---|---|
-| `PORT` | `3000` | Cổng của Fastify |
-| `DB_HOST` | `127.0.0.1` | Máy MySQL |
-| `DB_PORT` | `3306` | Cổng MySQL |
-| `DB_USER` | `root` | User MySQL |
-| `DB_PASSWORD` | (trống) | Mật khẩu MySQL |
-| `DB_NAME` | `template_library` | Database của app |
-| `TEST_DB_NAME` | `template_library_test` | Database cho `npm test` |
-| `DEFAULT_USER_ID` | `demo` | Chủ tài liệu khi chưa có đăng nhập (`storage/documents/<user>/`) |
-| `STORAGE_ROOT` | `server/storage` | Thư mục file mẫu, preview, tài liệu |
+## Trạng thái
 
-Client (`client/.env`, copy từ `client/.env.example`):
+Chi tiết từng tính năng: [docs/features.xlsx](docs/features.xlsx).
 
-| Biến | Mặc định | Ý nghĩa |
-|---|---|---|
-| `API_PROXY_TARGET` | `http://127.0.0.1:3000` | Địa chỉ backend; Vite chuyển tiếp `/api` và `/files` tới đây |
+**Đã hoàn thành**: toàn bộ chức năng của hai sản phẩm theo đề: thư viện mẫu, tìm kiếm (không dấu), lọc danh mục, xem trước, tạo tài liệu / bản trình chiếu từ mẫu, sửa DOCX trong editor (tự lưu), đổi tên, tải .docx / .pptx, quản lý tài liệu đã tạo.
+
+**Chưa hoàn thành**:
+- Chưa có editor slide PPTX trong ứng dụng: tạo bản sao, xem ảnh slide, tải .pptx rồi sửa bằng PowerPoint / LibreOffice.
+- Chưa có đăng nhập (mọi tài liệu thuộc user `demo`), chưa xoá tài liệu, danh sách tài liệu chưa phân trang.
+
+**Giới hạn kỹ thuật**:
+- Editor DOCX (bản core) giữ định dạng cơ bản (heading, đậm, danh sách, bảng); chỉ xuất .docx, chưa xuất PDF.
+- Ảnh xem trước được tạo sẵn cùng bộ mẫu, không tự sinh khi thêm mẫu mới.
+- Tìm kiếm không dấu dựa vào collation `utf8mb4_0900_ai_ci` nên cần MySQL 8.0+.
+
+**Hướng mở rộng**: tích hợp ONLYOFFICE Docs hoặc Collabora Online (WOPI) để sửa PPTX / DOCX đầy đủ ngay trong trình duyệt; thêm đăng nhập, xoá tài liệu, phân trang; sinh ảnh xem trước tự động bằng LibreOffice khi thêm mẫu.
 
 ## Thư viện bên thứ ba
 
-| Thư viện     | Dùng cho                      | Giấy phép  |
-|--------------|-------------------------------|------------|
-| fastify      | HTTP server                   | MIT        |
-| @fastify/swagger 9.9 + @fastify/swagger-ui 6.1 | Sinh tài liệu OpenAPI từ JSON schema của routes, giao diện Swagger UI ở `/api/docs` | MIT |
-| drizzle-orm  | ORM, query builder            | Apache-2.0 |
-| drizzle-kit  | Sinh migration (dev)          | MIT        |
-| mysql2       | Driver MySQL                  | MIT        |
-| jszip 3.10 (dev) | Đọc .docx trong test | MIT hoặc GPL-3.0 (chọn MIT) |
-| @docx-editor.dev/react + core 2.33 | Editor DOCX trong trình duyệt (chỉ dùng bản core, không dùng tính năng Pro) | Apache-2.0 |
+| Thư viện | Dùng cho | Giấy phép |
+|---|---|---|
+| fastify 5 | HTTP server | MIT |
+| @fastify/swagger 9.9 + @fastify/swagger-ui 6.1 | Tài liệu OpenAPI, Swagger UI | MIT |
+| drizzle-orm · drizzle-kit | ORM, sinh migration | Apache-2.0 · MIT |
+| mysql2 | Driver MySQL | MIT |
+| jszip 3.10 (dev) | Đọc .docx / .pptx trong test | MIT hoặc GPL-3.0 (chọn MIT) |
+| @docx-editor.dev/react + core 2.33 | Editor DOCX trong trình duyệt (bản core) | Apache-2.0 |
+
 ## Ghi chú
 
 Dự án có dùng AI (Claude Code) hỗ trợ lập trình.

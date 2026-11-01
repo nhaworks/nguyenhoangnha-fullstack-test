@@ -2,8 +2,6 @@ import { and, asc, eq, like, or, type SQL } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { categories, docTypes, templatePreviews, templates } from '../../db/schema.js';
 
-// Một mẫu đọc từ DB, đã kèm loại, danh mục, đuôi file và ảnh thumbnail.
-// id: số tự tăng, chỉ dùng trong DB; slug / categorySlug: khoá công khai trả cho client.
 export type TemplateRow = {
   id: number;
   slug: string;
@@ -25,8 +23,6 @@ export type TemplateFilter = {
   category?: string;
 };
 
-// Câu SELECT dùng chung cho danh sách và chi tiết mẫu.
-// LEFT JOIN ảnh preview có position = 1 để lấy thumbnail (mẫu chưa có ảnh vẫn được trả về).
 function selectTemplates() {
   return db
     .select({
@@ -52,7 +48,6 @@ function selectTemplates() {
     );
 }
 
-// Thêm dấu \ trước %, _ và \ để người dùng gõ "%" thì tìm đúng ký tự "%"
 function escapeLike(text: string) {
   return text.replace(/[\\%_]/g, '\\$&');
 }
@@ -67,8 +62,6 @@ export async function findTemplates(filter: TemplateFilter): Promise<TemplateRow
     conditions.push(eq(categories.slug, filter.category));
   }
   if (filter.q) {
-    // Database dùng collation utf8mb4_0900_ai_ci nên LIKE không phân biệt hoa thường và dấu:
-    // "hop dong" sẽ khớp "Hợp đồng"
     const pattern = `%${escapeLike(filter.q)}%`;
     conditions.push(or(like(templates.name, pattern), like(templates.description, pattern)));
   }

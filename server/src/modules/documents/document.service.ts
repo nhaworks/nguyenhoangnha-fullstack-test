@@ -10,8 +10,6 @@ import { findTemplateOrThrow } from '../templates/template.service.js';
 import * as documentRepository from './document.repository.js';
 import type { DocumentRow } from './document.repository.js';
 
-// Các loại tài liệu sửa được trong editor (docx-editor chạy ở trình duyệt). Hiện chỉ có docx;
-// pptx chỉ tạo bản sao, xem slide và tải về (chưa có editor slide).
 const EDITABLE_TYPES = ['docx'];
 
 type DocumentFields = {
@@ -24,8 +22,6 @@ type DocumentFields = {
   updatedAt: Date;
 };
 
-// Dữ liệu tài liệu trả cho client (không trả đường dẫn file trên server).
-// `id` trả cho client là uuid (khó đoán), `templateId` là slug của mẫu; id số tự tăng chỉ dùng trong DB.
 function toDocumentResponse(row: DocumentFields) {
   return {
     id: row.uuid,
@@ -36,12 +32,10 @@ function toDocumentResponse(row: DocumentFields) {
     editable: EDITABLE_TYPES.includes(row.type),
     downloadUrl: `/api/documents/${row.uuid}/download`,
     createdAt: row.createdAt,
-    updatedAt: row.updatedAt, // lần lưu gần nhất; bằng createdAt nếu chưa sửa
+    updatedAt: row.updatedAt,
   };
 }
 
-// File .docx là file zip (bắt đầu bằng "PK\x03\x04") và luôn có word/document.xml.
-// Tên file trong zip được lưu dạng chữ thường nên tìm thẳng trong nội dung.
 function isDocxFile(content: Buffer) {
   const ZIP_SIGNATURE = Buffer.from([0x50, 0x4b, 0x03, 0x04]);
   return content.subarray(0, 4).equals(ZIP_SIGNATURE) && content.includes('word/document.xml');
@@ -55,7 +49,6 @@ async function findDocumentOrThrow(uuid: string) {
   return document;
 }
 
-// Danh sách tài liệu user đã tạo (cả docx và pptx), sửa gần nhất lên đầu
 export async function listDocuments() {
   const rows = await documentRepository.findDocumentsOfUser(DEFAULT_USER_ID);
 
@@ -70,13 +63,6 @@ export async function getDocument(uuid: string) {
   return toDocumentResponse(document);
 }
 
-/**
- * Tạo tài liệu mới từ mẫu:
- *   1. Thêm 1 dòng vào bảng documents
- *   2. Copy file mẫu sang storage/documents/<user>/<id>.<đuôi file>
- * Hai bước nằm chung một transaction: bước nào lỗi thì DB rollback và xoá file đã copy.
- * File mẫu gốc chỉ được đọc, không bị sửa.
- */
 export async function createDocument(templateSlug: string, title?: string) {
   const template = await findTemplateOrThrow(templateSlug);
 
@@ -95,11 +81,9 @@ export async function createDocument(templateSlug: string, title?: string) {
       });
 
       await mkdir(path.dirname(targetFile), { recursive: true });
-      // COPYFILE_EXCL: nếu file đích đã tồn tại thì báo lỗi, không ghi đè
       await copyFile(sourceFile, targetFile, constants.COPYFILE_EXCL);
     });
   } catch (error) {
-    // Xoá file copy dở. Lỗi EEXIST nghĩa là file có sẵn từ trước (không phải do mình tạo) nên giữ lại.
     const fileAlreadyExists = (error as NodeJS.ErrnoException).code === 'EEXIST';
     if (!fileAlreadyExists) {
       await rm(targetFile, { force: true });
@@ -110,11 +94,6 @@ export async function createDocument(templateSlug: string, title?: string) {
   return getDocument(documentUuid);
 }
 
-/**
- * Lưu file .docx do editor ở trình duyệt gửi lên:
- *   - Ghi đè file của tài liệu (file mẫu gốc không bị đụng tới)
- *   - Cập nhật updated_at để biết lần lưu gần nhất
- */
 export async function saveDocument(uuid: string, content: Buffer) {
   const document = await findDocumentOrThrow(uuid);
 
@@ -125,8 +104,6 @@ export async function saveDocument(uuid: string, content: Buffer) {
     throw new AppError(400, 'File gửi lên không phải định dạng .docx');
   }
 
-  // Ghi ra file tạm rồi đổi tên thành file thật,
-  // để người đang tải xuống không bao giờ nhận phải file mới ghi được một nửa.
   const targetFile = getStoragePath(document.filePath, 'documents');
   const tempFile = `${targetFile}.${randomUUID()}.tmp`;
 
@@ -137,21 +114,18 @@ export async function saveDocument(uuid: string, content: Buffer) {
       await rename(tempFile, targetFile);
     });
   } finally {
-    // Nếu lỗi xảy ra trước khi rename thì file tạm vẫn còn, xoá đi
     await rm(tempFile, { force: true });
   }
 
   return getDocument(uuid);
 }
 
-// Đổi tiêu đề tài liệu (chỉ metadata, file không đổi). Tên file khi tải xuống lấy theo tiêu đề mới.
 export async function renameDocument(uuid: string, title: string) {
   await findDocumentOrThrow(uuid);
   await documentRepository.updateDocumentTitle(uuid, title.trim());
   return getDocument(uuid);
 }
 
-// Trả về file để tải xuống, tên file = tiêu đề tài liệu
 export async function getDocumentDownload(uuid: string) {
   const document = await findDocumentOrThrow(uuid);
   const file = await openStoredFile(document.filePath, 'documents');

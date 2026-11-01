@@ -134,7 +134,6 @@ describe('File mẫu và ảnh preview', () => {
     const res = await callApi('/api/templates/hop-dong-lao-dong/file');
     assert.equal(res.statusCode, 200);
     assert.equal(res.headers['content-type'], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    // File .docx thực chất là file zip, luôn bắt đầu bằng "PK"
     assert.equal(res.rawPayload.subarray(0, 2).toString(), 'PK');
   });
 

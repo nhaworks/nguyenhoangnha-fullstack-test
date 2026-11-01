@@ -2,8 +2,6 @@ import { asc, count, eq } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { categories, docTypes, templates } from '../../db/schema.js';
 
-// Lấy các danh mục đang có mẫu, kèm số lượng mẫu trong mỗi danh mục.
-// Có type thì chỉ đếm mẫu của loại đó (docx / pptx). `id` trả cho client là slug.
 export async function findCategories(type?: string) {
   return db
     .select({

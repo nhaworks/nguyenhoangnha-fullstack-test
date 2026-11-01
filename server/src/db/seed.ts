@@ -5,9 +5,6 @@ import { getStoragePath } from '../storage.js';
 import { db } from './index.js';
 import { categories, docTypes, templatePreviews, templates } from './schema.js';
 
-// Cấu trúc file storage/templates/manifest.json
-// (trường `source` của mỗi mẫu chỉ dùng cho scripts/samples.py, seed không cần).
-// `id` của danh mục / mẫu trong manifest là slug, lưu vào cột `slug`; cột `id` của DB là số tự tăng.
 type Manifest = {
   docTypes: { code: string; name: string; extension: string }[];
   categories: { id: string; name: string; description: string }[];
@@ -25,7 +22,6 @@ type TemplateRow = {
 
 type PreviewRow = { templateSlug: string; position: number; imagePath: string };
 
-// Tìm ảnh preview của một mẫu trên ổ đĩa: storage/previews/<slug mẫu>/1.png, 2.png...
 async function findPreviewImages(templateSlug: string): Promise<PreviewRow[]> {
   const folder = `previews/${templateSlug}`;
 
@@ -33,7 +29,7 @@ async function findPreviewImages(templateSlug: string): Promise<PreviewRow[]> {
   try {
     fileNames = await readdir(getStoragePath(folder, 'previews'));
   } catch {
-    return []; // mẫu chưa có ảnh preview
+    return [];
   }
 
   const previews: PreviewRow[] = [];
@@ -45,16 +41,10 @@ async function findPreviewImages(templateSlug: string): Promise<PreviewRow[]> {
   return previews;
 }
 
-/**
- * Đồng bộ dữ liệu mẫu từ manifest.json vào DB. Chạy mỗi lần server khởi động.
- * Dùng upsert: chưa có thì thêm, có rồi thì cập nhật.
- * Mẫu bị xoá khỏi manifest vẫn giữ trong DB, vì có thể đang có tài liệu tạo từ mẫu đó.
- */
 export async function seed() {
   const manifestPath = getStoragePath('templates/manifest.json', 'templates');
   const manifest: Manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
 
-  // Bước 1: chuẩn bị dữ liệu từng mẫu và kiểm tra file mẫu có tồn tại không
   const templateRows: TemplateRow[] = [];
   const previewRows: PreviewRow[] = [];
 
@@ -80,8 +70,6 @@ export async function seed() {
     previewRows.push(...(await findPreviewImages(item.id)));
   }
 
-  // Bước 2: ghi vào DB trong một transaction.
-  // Upsert theo cột UNIQUE (code / slug): dòng đã có giữ nguyên id, chỉ cập nhật nội dung.
   await db.transaction(async (tx) => {
     for (const docType of manifest.docTypes) {
       await tx
@@ -97,7 +85,6 @@ export async function seed() {
         .onDuplicateKeyUpdate({ set: { name: category.name, description: category.description } });
     }
 
-    // Bảng templates trỏ tới loại và danh mục bằng id số, nên đọc lại id theo code / slug
     const docTypeIds = toIdMap(await tx.select({ id: docTypes.id, key: docTypes.code }).from(docTypes));
     const categoryIds = toIdMap(await tx.select({ id: categories.id, key: categories.slug }).from(categories));
 
@@ -108,7 +95,7 @@ export async function seed() {
       }
       const values = {
         slug: template.slug,
-        docTypeId: docTypeIds.get(template.docTypeCode)!, // type đã kiểm tra ở bước 1
+        docTypeId: docTypeIds.get(template.docTypeCode)!,
         categoryId,
         name: template.name,
         description: template.description,
@@ -117,7 +104,6 @@ export async function seed() {
       await tx.insert(templates).values(values).onDuplicateKeyUpdate({ set: values });
     }
 
-    // Ảnh preview: xoá ảnh cũ của các mẫu rồi thêm lại theo những gì đang có trên ổ đĩa
     const templateIds = toIdMap(await tx.select({ id: templates.id, key: templates.slug }).from(templates));
     const seededTemplateIds = templateRows.map((template) => templateIds.get(template.slug)!);
     if (seededTemplateIds.length > 0) {
@@ -135,7 +121,6 @@ export async function seed() {
   });
 }
 
-// Đổi danh sách { id, key } thành Map: khoá công khai (code / slug) → id số
 function toIdMap(rows: { id: number; key: string }[]): Map<string, number> {
   return new Map(rows.map((row) => [row.key, row.id]));
 }

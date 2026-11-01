@@ -12,7 +12,6 @@ after(async () => {
   await testApp.cleanup();
 });
 
-// Import sau setupTestApp() vì setup đổi DB_NAME sang database test trước khi code của app được nạp
 async function loadDb() {
   const { eq } = await import('drizzle-orm');
   const { db } = await import('../src/db/index.js');

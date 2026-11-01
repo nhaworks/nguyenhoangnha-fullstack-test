@@ -4,7 +4,6 @@ import path from 'node:path';
 import { STORAGE_ROOT } from './config.js';
 import { AppError } from './errors.js';
 
-// MIME type theo đuôi file. Thêm loại file mới (vd. xlsx) thì thêm 1 dòng ở đây.
 export const MIME_TYPES: Record<string, string> = {
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -17,12 +16,6 @@ export type StoredFile = {
   mimeType: string;
 };
 
-/**
- * Đổi đường dẫn tương đối (vd. "previews/hop-dong/1.png") thành đường dẫn đầy đủ trên ổ đĩa.
- *
- * Chặn path traversal: đường dẫn nào đi ra ngoài thư mục allowedFolder
- * (vd. "previews/../../.env") đều bị từ chối với lỗi 404.
- */
 export function getStoragePath(relativePath: string, allowedFolder: string): string {
   const allowedDir = path.resolve(STORAGE_ROOT, allowedFolder);
   const fullPath = path.resolve(STORAGE_ROOT, relativePath);
@@ -41,11 +34,9 @@ export function getMimeType(filePath: string): string {
   return MIME_TYPES[extension] || 'application/octet-stream';
 }
 
-// Mở file để đọc (chỉ đọc, không ghi). Báo lỗi 404 nếu file không tồn tại.
 export async function openStoredFile(relativePath: string, allowedFolder: string): Promise<StoredFile> {
   const fullPath = getStoragePath(relativePath, allowedFolder);
 
-  // stat() báo lỗi khi file không tồn tại, lúc đó coi như null
   const fileInfo = await stat(fullPath).catch(() => null);
   if (!fileInfo || !fileInfo.isFile()) {
     throw new AppError(404, 'Không tìm thấy file');

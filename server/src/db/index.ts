@@ -9,14 +9,11 @@ export const pool = mysql.createPool({
   user: DB_USER,
   password: DB_PASSWORD,
   database: DB_NAME,
-  // Cùng collation với bảng, để so sánh chuỗi không phân biệt hoa thường và dấu
-  charset: 'UTF8MB4_0900_AI_CI',
+  charset: 'utf8mb4',
 });
 
-// Drizzle đọc cột TIMESTAMP theo giờ UTC, nên mỗi kết nối phải chạy ở UTC (nếu không sẽ lệch 7 tiếng)
 pool.on('connection', (conn) => conn.query("SET time_zone = '+00:00'"));
 
 export const db = drizzle(pool, { schema, mode: 'default' });
 
-// Kiểu của biến `tx` trong db.transaction(async (tx) => { ... })
 export type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
